@@ -53,7 +53,11 @@ export async function handleUserMessage(userText: string): Promise<AssistantRepl
   const tools = isGoogleConfigured() ? calendarTools : undefined;
   const toolsUsed: string[] = [];
 
-  let result = await ollamaChat(messages, { tools });
+  // Modelo vem do banco (fonte da verdade, editável e coerente com a UI);
+  // cai para o padrão do .env se estiver vazio.
+  const model = settings.llmModel || undefined;
+
+  let result = await ollamaChat(messages, { tools, model });
 
   // Loop de Function Calling: executa ferramentas e devolve o resultado ao modelo.
   let rounds = 0;
@@ -69,7 +73,7 @@ export async function handleUserMessage(userText: string): Promise<AssistantRepl
       messages.push({ role: 'tool', content: output });
     }
 
-    result = await ollamaChat(messages, { tools });
+    result = await ollamaChat(messages, { tools, model });
   }
 
   // Persiste a interação (mesmo em fallback, para manter o rastro da conversa).
