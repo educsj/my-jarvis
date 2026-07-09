@@ -1,38 +1,60 @@
 import { randomUUID } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { env } from '../config/env.js';
+import { run, binAvailable } from './voice/proc.js';
 
 /**
- * TTS (Text-to-Speech) — stub de integração com Piper TTS.
+ * TTS (Text-to-Speech) — Piper.
  *
- * Na implementação real, este módulo vai:
- *  1. Invocar o binário do Piper (via child_process) com um modelo de voz
- *     em português (ex.: pt_BR-faber-medium.onnx).
- *  2. Gerar um arquivo .wav em /temp_audio e retornar o caminho.
- *
- * Por ora, grava um arquivo .txt placeholder com o conteúdo falado, para que
- * a rota /chat/voice tenha um artefato de saída referenciável.
+ * Se PIPER_BIN e PIPER_MODEL estiverem configurados no .env, sintetiza um .wav
+ * de verdade com uma voz em português. Caso contrário, grava um .txt placeholder
+ * (stub) para manter a rota /chat/voice com um artefato de saída.
  */
 
 const TEMP_AUDIO_DIR = path.resolve(process.cwd(), 'temp_audio');
 
 export interface SynthesisResult {
-  /** Caminho do arquivo de áudio gerado (relativo à raiz do projeto). */
+  /** Caminho do arquivo gerado, relativo à raiz do projeto. */
   audioPath: string;
   /** true quando veio do Piper real; false quando é stub. */
   real: boolean;
 }
 
+/** As dependências do TTS real estão configuradas e presentes? */
+export function isTtsConfigured(): boolean {
+  return (
+    binAvailable(env.PIPER_BIN) && Boolean(env.PIPER_MODEL) && existsSync(env.PIPER_MODEL)
+  );
+}
+
 export async function synthesizeSpeech(text: string): Promise<SynthesisResult> {
-  // TODO(Fase 2+): integrar Piper TTS de verdade (saída .wav).
   await mkdir(TEMP_AUDIO_DIR, { recursive: true });
 
-  const filename = `speech-${randomUUID()}.txt`;
-  const fullPath = path.join(TEMP_AUDIO_DIR, filename);
-  await writeFile(fullPath, text, 'utf-8');
+  if (!isTtsConfigured()) {
+    const filename = `speech-${randomUUID()}.txt`;
+    await writeFile(path.join(TEMP_AUDIO_DIR, filename), text, 'utf-8');
+    return { audioPath: path.join('temp_audio', filename), real: false };
+  }
 
-  return {
-    audioPath: path.join('temp_audio', filename),
-    real: false,
-  };
+  const filename = `speech-${randomUUID()}.wav`;
+  const fullPath = path.join(TEMP_AUDIO_DIR, filename);
+
+  try {
+    // Piper lê o texto pelo stdin e grava o WAV no caminho de --output_file.
+    const result = await run(env.PIPER_BIN, ['-m', env.PIPER_MODEL, '-f', fullPath], text);
+    if (result.code !== 0 || !existsSync(fullPath)) {
+      console.error('[TTS] piper falhou:', result.stderr.slice(-300));
+      const txt = `speech-${randomUUID()}.txt`;
+      await writeFile(path.join(TEMP_AUDIO_DIR, txt), text, 'utf-8');
+      return { audioPath: path.join('temp_audio', txt), real: false };
+    }
+    return { audioPath: path.join('temp_audio', filename), real: true };
+  } catch (err) {
+    console.error('[TTS] erro:', (err as Error).message);
+    const txt = `speech-${randomUUID()}.txt`;
+    await writeFile(path.join(TEMP_AUDIO_DIR, txt), text, 'utf-8');
+    return { audioPath: path.join('temp_audio', txt), real: false };
+  }
 }

@@ -2,17 +2,21 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { handleUserMessage } from '../services/chat.js';
 import { isOllamaAvailable } from '../services/ollama.js';
-import { transcribeAudio } from '../services/stt.js';
-import { synthesizeSpeech } from '../services/tts.js';
+import { transcribeAudio, isSttConfigured } from '../services/stt.js';
+import { synthesizeSpeech, isTtsConfigured } from '../services/tts.js';
 
 const chatTextSchema = z.object({
   message: z.string().min(1),
 });
 
 export async function chatRoutes(app: FastifyInstance) {
-  // GET /chat/status — o "cérebro" (Ollama) está disponível?
+  // GET /chat/status — o "cérebro" (Ollama) está disponível? Voz real ativa?
   app.get('/chat/status', async () => {
-    return { brainOnline: await isOllamaAvailable() };
+    return {
+      brainOnline: await isOllamaAvailable(),
+      sttReal: isSttConfigured(),
+      ttsReal: isTtsConfigured(),
+    };
   });
 
   // POST /chat — conversa por texto (útil para testar o cérebro + personalidade)

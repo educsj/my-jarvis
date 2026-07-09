@@ -64,9 +64,10 @@ Validação de entrada com **Zod** (ex.: `humorLevel` fora de 0–100 → HTTP 4
 - **Gerenciador de System Prompt** (`services/personality.ts`): converte `humorLevel`/`empathyLevel` (0–100) do banco em instruções de tom, estilo TARS/CASE. Ex.: humor alto → sarcástico; empatia baixa → factual/eficiente. O prompt é remontado **a cada requisição**, então mexer nos sliders muda a persona na hora.
 - Histórico de conversa persistido em `ChatHistory` e reinjetado como contexto (últimas 10 mensagens).
 
-### 2. Stubs de STT e TTS
-- `services/stt.ts` — stub do **Whisper.cpp** (retorna transcrição simulada; interface pronta para plugar o binário).
-- `services/tts.ts` — stub do **Piper TTS** (gera um artefato em `/temp_audio`; interface pronta para saída `.wav`).
+### 2. STT e TTS (Whisper + Piper) — reais e configuráveis
+- `services/stt.ts` — **Whisper.cpp**: converte o áudio para WAV 16kHz (ffmpeg) e transcreve. Ativa quando `WHISPER_BIN`/`WHISPER_MODEL` estão no `.env`; senão, usa transcrição simulada.
+- `services/tts.ts` — **Piper TTS**: sintetiza um `.wav` com voz em português. Ativa quando `PIPER_BIN`/`PIPER_MODEL` estão no `.env`; senão, grava um placeholder.
+- Status visível em `GET /chat/status` (`sttReal` / `ttsReal`). Passo a passo de instalação dos binários/modelos na seção **🎙️ Voz real** abaixo.
 
 ### 3. Rotas de conversa
 
@@ -175,6 +176,40 @@ npm run build:apk  # eas build -p android --profile preview → gera o .apk na n
 ```
 
 > ⚠️ **O build do `.apk` roda na nuvem do EAS e exige login na sua conta Expo** (passo interativo). Todo o app e a configuração (`eas.json`, permissões, scripts) já estão prontos — basta você autenticar e disparar o build. Validado localmente com `expo-doctor` (20/20) e bundle Android (Metro).
+
+---
+
+## 🎙️ Voz real (Whisper + Piper) — opcional
+
+Sem isto, a voz funciona em modo simulado. Para ativar STT/TTS de verdade (Windows):
+
+1. **ffmpeg** (converte o áudio do celular para o formato do Whisper):
+   ```powershell
+   winget install --id Gyan.FFmpeg --accept-source-agreements --accept-package-agreements
+   ```
+   Reabra o terminal depois (ou aponte `FFMPEG_BIN` para o caminho completo do `ffmpeg.exe`).
+
+2. **Whisper.cpp** (STT):
+   - Baixe o binário Windows em https://github.com/ggml-org/whisper.cpp/releases (procure `whisper-cli.exe` / `main.exe`).
+   - Baixe um modelo (recomendado `ggml-small.bin`, PT bom) em https://huggingface.co/ggerganov/whisper.cpp/tree/main.
+   - Coloque ambos em, ex.: `C:\jarvis-voice\whisper\`.
+
+3. **Piper** (TTS):
+   - Baixe `piper_windows_amd64.zip` em https://github.com/rhasspy/piper/releases e extraia (`piper.exe`).
+   - Baixe uma voz pt-BR (`.onnx` **e** `.onnx.json`), ex.: `pt_BR-faber-medium`, em
+     https://huggingface.co/rhasspy/piper-voices/tree/main/pt/pt_BR — mantenha os dois arquivos juntos.
+   - Coloque em, ex.: `C:\jarvis-voice\piper\`.
+
+4. **Preencha o `.env`** (use caminhos absolutos, com barras duplas no Windows):
+   ```env
+   FFMPEG_BIN="ffmpeg"
+   WHISPER_BIN="C:\\jarvis-voice\\whisper\\whisper-cli.exe"
+   WHISPER_MODEL="C:\\jarvis-voice\\whisper\\ggml-small.bin"
+   PIPER_BIN="C:\\jarvis-voice\\piper\\piper.exe"
+   PIPER_MODEL="C:\\jarvis-voice\\piper\\pt_BR-faber-medium.onnx"
+   ```
+
+5. **Reinicie o backend** e confira `GET /chat/status` → `sttReal: true`, `ttsReal: true`.
 
 ---
 

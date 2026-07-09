@@ -4,7 +4,8 @@ import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'node_modules/**', 'prisma/migrations/**'],
+    // web/ e mobile/ têm seus próprios lint configs; a raiz linta só o backend.
+    ignores: ['dist/**', 'node_modules/**', 'prisma/migrations/**', 'web/**', 'mobile/**'],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

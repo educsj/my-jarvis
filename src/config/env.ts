@@ -10,6 +10,14 @@ const envSchema = z.object({
   OLLAMA_BASE_URL: z.string().url().default('http://127.0.0.1:11434'),
   OLLAMA_MODEL: z.string().default('llama3.1:8b'),
 
+  // Voz (STT/TTS). Se vazios, os serviços usam os stubs simulados.
+  FFMPEG_BIN: z.string().optional().default('ffmpeg'),
+  WHISPER_BIN: z.string().optional().default(''),
+  WHISPER_MODEL: z.string().optional().default(''),
+  WHISPER_LANG: z.string().optional().default('pt'),
+  PIPER_BIN: z.string().optional().default(''),
+  PIPER_MODEL: z.string().optional().default(''),
+
   GOOGLE_CLIENT_ID: z.string().optional().default(''),
   GOOGLE_CLIENT_SECRET: z.string().optional().default(''),
   GOOGLE_REDIRECT_URI: z
