@@ -1,0 +1,278 @@
+@import 'tailwindcss';
+
+/* ============================================================
+   MEU JARVIS — Design System "Cockpit Monolith"
+   Estética TARS/CASE (Interestelar): instrumentos matte,
+   sinal âmbar (luz de cabine), tipografia mono-forward.
+   ============================================================ */
+
+@theme {
+  --color-void: #0a0d10;
+  --color-panel: #11151a;
+  --color-panel-2: #161b21;
+  --color-amber: #e8a13a;
+  --color-amber-soft: #f5b85c;
+  --color-ice: #7fc8d8;
+  --color-text: #e7eaed;
+  --color-muted: #7c858e;
+  --color-danger: #e06a5b;
+  --color-ok: #6fce8f;
+
+  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+}
+
+:root {
+  --line: rgba(255, 255, 255, 0.08);
+  --line-bright: rgba(255, 255, 255, 0.16);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background:
+    radial-gradient(1200px 700px at 78% -8%, rgba(232, 161, 58, 0.08), transparent 55%),
+    radial-gradient(1000px 800px at 0% 100%, rgba(127, 200, 216, 0.05), transparent 55%),
+    var(--color-void);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* Grão sutil de "ruído de instrumento" sobre o fundo */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.012) 0px,
+    rgba(255, 255, 255, 0.012) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+}
+
+/* ---- Reveal de entrada (boot dos instrumentos) — CSS, robusto a falha de JS ---- */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.reveal {
+  animation: fadeUp 0.5s ease both;
+}
+
+/* ---- Tipografia utilitária ---- */
+.mono {
+  font-family: var(--font-mono);
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* ---- Shell de painel (instrumento) ---- */
+.panel {
+  position: relative;
+  background: linear-gradient(180deg, var(--color-panel-2), var(--color-panel));
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.25rem 1.35rem;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.03) inset,
+    0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+/* Moldura interna sutil do instrumento */
+.panel::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  pointer-events: none;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.panel-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ---- Chips de status ---- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  padding: 0.32rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-muted);
+}
+.dot.on {
+  background: var(--color-ok);
+  box-shadow: 0 0 10px var(--color-ok);
+}
+.dot.warn {
+  background: var(--color-amber);
+  box-shadow: 0 0 10px var(--color-amber);
+}
+.dot.off {
+  background: #4a5159;
+}
+
+/* ---- Segment bar (assinatura da Personality Matrix) ---- */
+.segbar {
+  display: flex;
+  gap: 3px;
+  height: 30px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+}
+.seg {
+  flex: 1;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition:
+    background 120ms ease,
+    box-shadow 120ms ease;
+}
+.seg.fill-amber {
+  background: linear-gradient(180deg, var(--color-amber-soft), var(--color-amber));
+  border-color: transparent;
+  box-shadow: 0 0 12px rgba(232, 161, 58, 0.35);
+}
+.seg.fill-ice {
+  background: linear-gradient(180deg, #a7e0ec, var(--color-ice));
+  border-color: transparent;
+  box-shadow: 0 0 12px rgba(127, 200, 216, 0.3);
+}
+
+/* ---- Botões ---- */
+.btn {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line-bright);
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    transform 80ms ease;
+}
+.btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn-amber {
+  color: #1a1206;
+  background: linear-gradient(180deg, var(--color-amber-soft), var(--color-amber));
+  border-color: transparent;
+  font-weight: 700;
+}
+.btn-amber:hover {
+  filter: brightness(1.06);
+  background: linear-gradient(180deg, var(--color-amber-soft), var(--color-amber));
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ---- Inputs ---- */
+.field {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--color-text);
+  padding: 0.6rem 0.8rem;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 120ms ease;
+}
+.field:focus {
+  border-color: rgba(232, 161, 58, 0.55);
+}
+.field::placeholder {
+  color: #5b636b;
+}
+
+/* ---- Scroll discreto ---- */
+.scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+.scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+}
+
+/* ---- Foco acessível ---- */
+:focus-visible {
+  outline: 2px solid var(--color-amber);
+  outline-offset: 2px;
+}
+
+/* ---- Movimento reduzido ---- */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,64 @@
+// Prisma schema — Assistente Pessoal Inteligente
+// Banco: SQLite (local, focado em privacidade)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reminders   Reminder[]
+  chatHistory ChatHistory[]
+  settings    Settings?
+}
+
+model Reminder {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  dueDate     DateTime?
+  completed   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ChatHistory {
+  id        String   @id @default(uuid())
+  role      String // "user" | "assistant"
+  content   String
+  audioPath String? // caminho do áudio gerado/recebido (Fase 2)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Matriz de Personalidade (estilo robôs de Interestelar - TARS/CASE)
+model Settings {
+  id           String   @id @default(uuid())
+  humorLevel   Int      @default(50) // 0-100
+  empathyLevel Int      @default(50) // 0-100
+  llmModel     String   @default("llama3.1:8b")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

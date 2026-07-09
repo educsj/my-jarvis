@@ -1,0 +1,90 @@
+import { prisma } from '../lib/prisma.js';
+import { ensureDefaultUser } from '../lib/ensureUser.js';
+import { buildSystemPrompt } from './personality.js';
+import { chat as ollamaChat, type ChatMessage } from './ollama.js';
+import { isGoogleConfigured } from './google/oauth.js';
+import { calendarTools, runCalendarTool } from './google/tools.js';
+
+const HISTORY_LIMIT = 10; // últimas N mensagens usadas como contexto
+const MAX_TOOL_ROUNDS = 4; // trava de segurança contra loop infinito de tools
+
+export interface AssistantReply {
+  reply: string;
+  model: string;
+  ok: boolean;
+  personality: { humorLevel: number; empathyLevel: number };
+  /** Ferramentas (Function Calling) efetivamente executadas nesta resposta. */
+  toolsUsed: string[];
+}
+
+/**
+ * Fluxo central de conversa:
+ *  1. Lê a personalidade atual do banco → System Prompt dinâmico.
+ *  2. Recupera as últimas mensagens como contexto.
+ *  3. Chama o Ollama, resolvendo chamadas de ferramenta (Google Calendar) em loop.
+ *  4. Persiste a mensagem do usuário e a resposta final no ChatHistory.
+ */
+export async function handleUserMessage(userText: string): Promise<AssistantReply> {
+  const user = await ensureDefaultUser();
+  const settings = user.settings!;
+
+  const systemPrompt = buildSystemPrompt({
+    humorLevel: settings.humorLevel,
+    empathyLevel: settings.empathyLevel,
+  });
+
+  const recent = await prisma.chatHistory.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'desc' },
+    take: HISTORY_LIMIT,
+  });
+
+  const history: ChatMessage[] = recent
+    .reverse()
+    .map((m) => ({ role: m.role as ChatMessage['role'], content: m.content }));
+
+  const messages: ChatMessage[] = [
+    { role: 'system', content: systemPrompt },
+    ...history,
+    { role: 'user', content: userText },
+  ];
+
+  // Só oferece as ferramentas de calendário quando o Google está configurado.
+  const tools = isGoogleConfigured() ? calendarTools : undefined;
+  const toolsUsed: string[] = [];
+
+  let result = await ollamaChat(messages, { tools });
+
+  // Loop de Function Calling: executa ferramentas e devolve o resultado ao modelo.
+  let rounds = 0;
+  while (result.ok && result.toolCalls?.length && rounds < MAX_TOOL_ROUNDS) {
+    rounds += 1;
+
+    // Registra a intenção do assistente de chamar ferramentas.
+    messages.push({ role: 'assistant', content: result.content, tool_calls: result.toolCalls });
+
+    for (const call of result.toolCalls) {
+      const output = await runCalendarTool(call.function.name, call.function.arguments ?? {});
+      toolsUsed.push(call.function.name);
+      messages.push({ role: 'tool', content: output });
+    }
+
+    result = await ollamaChat(messages, { tools });
+  }
+
+  // Persiste a interação (mesmo em fallback, para manter o rastro da conversa).
+  await prisma.chatHistory.create({
+    data: { userId: user.id, role: 'user', content: userText },
+  });
+  await prisma.chatHistory.create({
+    data: { userId: user.id, role: 'assistant', content: result.content },
+  });
+
+  return {
+    reply: result.content,
+    model: result.model,
+    ok: result.ok,
+    personality: { humorLevel: settings.humorLevel, empathyLevel: settings.empathyLevel },
+    toolsUsed,
+  };
+}
