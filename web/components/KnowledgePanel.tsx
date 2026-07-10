@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
+import { useI18n } from '@/lib/i18n';
 
 interface Status {
   chunks: number;
@@ -15,6 +16,7 @@ export function KnowledgePanel() {
   const [msg, setMsg] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     let active = true;
@@ -70,8 +72,8 @@ export function KnowledgePanel() {
     <section className="panel reveal" style={{ animationDelay: '0.25s' }}>
       <div className="panel-head">
         <div>
-          <div className="eyebrow">Base de Conhecimento</div>
-          <div className="panel-title">Documentos (RAG)</div>
+          <div className="eyebrow">{t('knowledge.eyebrow')}</div>
+          <div className="panel-title">{t('knowledge.title')}</div>
         </div>
         <span className="chip">
           <span className={`dot ${status && status.files > 0 ? 'on' : 'off'}`} />
@@ -140,7 +142,7 @@ export function KnowledgePanel() {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: '0.7rem' }}>
         <button className="btn" onClick={reindex} disabled={busy}>
-          {busy ? '…' : 'Reindexar'}
+          {busy ? '…' : t('knowledge.reindex')}
         </button>
         {!busy && msg && (
           <span className="mono" style={{ fontSize: '0.72rem', color: 'var(--color-muted)' }}>

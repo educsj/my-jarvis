@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Settings, PersonalityKey } from '@/lib/api';
+import { useI18n } from '@/lib/i18n';
 
 const SEGMENTS = 20;
 
@@ -142,6 +143,7 @@ export function PersonalityMatrix({
   const setOne = (key: PersonalityKey, v: number) =>
     setValues((cur) => ({ ...cur, [key]: v }));
 
+  const { t } = useI18n();
   const [collapsed, setCollapsed] = useState(false);
   useEffect(() => {
     // Sincroniza com o localStorage no cliente (evita hydration mismatch do SSR).
@@ -159,8 +161,8 @@ export function PersonalityMatrix({
     <section className="panel reveal" style={{ animationDelay: '0.05s' }}>
       <div className="panel-head" style={{ marginBottom: collapsed ? 0 : undefined }}>
         <div>
-          <div className="eyebrow">Matriz de Personalidade</div>
-          <div className="panel-title">Configuração do núcleo</div>
+          <div className="eyebrow">{t('personality.eyebrow')}</div>
+          <div className="panel-title">{t('personality.title')}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="chip">

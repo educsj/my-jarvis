@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api, type CalendarEvent, type GoogleStatus } from '@/lib/api';
+import { useI18n } from '@/lib/i18n';
 
 function formatTime(iso?: string): string {
   if (!iso) return '--:--';
@@ -14,6 +15,7 @@ export function AgendaPanel() {
   const [status, setStatus] = useState<GoogleStatus | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useI18n();
 
   useEffect(() => {
     (async () => {
@@ -42,7 +44,7 @@ export function AgendaPanel() {
     <section className="panel reveal" style={{ animationDelay: '0.2s' }}>
       <div className="panel-head">
         <div>
-          <div className="eyebrow">Google Calendar</div>
+          <div className="eyebrow">{t('agenda.eyebrow')}</div>
           <div className="panel-title" style={{ textTransform: 'capitalize' }}>
             {today}
           </div>

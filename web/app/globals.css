@@ -27,6 +27,25 @@
   --line-bright: rgba(255, 255, 255, 0.16);
 }
 
+/* ---- Temas (aparência) — sobrescrevem a cor de destaque via data-theme.
+   !important garante precedência sobre as variáveis do @theme (Tailwind v4). ---- */
+:root[data-theme='ice'] {
+  --color-amber: #46c8e6 !important;
+  --color-amber-soft: #7fdcf0 !important;
+}
+:root[data-theme='emerald'] {
+  --color-amber: #3fd08a !important;
+  --color-amber-soft: #74e3ab !important;
+}
+:root[data-theme='violet'] {
+  --color-amber: #a98bf0 !important;
+  --color-amber-soft: #c6b0f8 !important;
+}
+:root[data-theme='crimson'] {
+  --color-amber: #ef6a6a !important;
+  --color-amber-soft: #f59595 !important;
+}
+
 * {
   box-sizing: border-box;
 }

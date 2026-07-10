@@ -74,6 +74,20 @@ export interface VoiceReply extends ChatReply {
   audioReal: boolean;
 }
 
+export interface AuditEntry {
+  ts?: string;
+  type: 'chat' | 'voice' | 'error';
+  ok?: boolean;
+  model?: string;
+  ms?: number;
+  userText?: string;
+  reply?: string;
+  toolsUsed?: string[];
+  kbSources?: string[];
+  saved?: boolean;
+  error?: string;
+}
+
 export interface CalendarEvent {
   id: string;
   summary: string;
@@ -91,6 +105,18 @@ export interface GoogleStatus {
 export const api = {
   health: () => request<{ status: string; service: string }>('/health'),
   brainStatus: () => request<{ brainOnline: boolean }>('/chat/status'),
+
+  getVoices: () =>
+    request<{ voices: { path: string; file: string; name: string; lang: string }[]; selected: string }>(
+      '/voices'
+    ),
+  selectVoice: (path: string) =>
+    request<{ selected: string }>('/voices/select', { method: 'PUT', body: JSON.stringify({ path }) }),
+
+  getLogs: (opts?: { limit?: number; errors?: boolean }) =>
+    request<{ entries: AuditEntry[] }>(
+      `/logs?limit=${opts?.limit ?? 50}${opts?.errors ? '&errors=1' : ''}`
+    ),
 
   getSettings: () => request<Settings>('/settings'),
   updateSettings: (data: Partial<Record<PersonalityKey, number> & { llmModel: string }>) =>

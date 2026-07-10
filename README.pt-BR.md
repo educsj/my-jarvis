@@ -40,6 +40,9 @@ terceiros, a menos que você ative explicitamente o Google Calendar.
   enviar documentos por arrastar-e-soltar.
 - **📱 App Android** — React Native (Expo) com tela fluida de push-to-talk;
   gera `.apk` via EAS.
+- **⚙️ Painel de configurações** — uma gaveta discreta para trocar o idioma da
+  interface (PT/EN), escolher um tema (extensível), selecionar a voz do
+  assistente (vozes do Piper listadas por idioma) e consultar o log de auditoria.
 - **🔐 Controles de privacidade** — o histórico é salvo por padrão, mas um
   **modo privado** (um clique) mantém a conversa efêmera; você também pode
   **salvar uma conversa na base de conhecimento** (em qualquer subpasta) para

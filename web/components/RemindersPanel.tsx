@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api, type Reminder } from '@/lib/api';
+import { useI18n } from '@/lib/i18n';
 
 export function RemindersPanel() {
   const [items, setItems] = useState<Reminder[]>([]);
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(true);
+  const { t } = useI18n();
 
   useEffect(() => {
     let active = true;
@@ -50,8 +52,8 @@ export function RemindersPanel() {
     <section className="panel reveal" style={{ animationDelay: '0.15s' }}>
       <div className="panel-head">
         <div>
-          <div className="eyebrow">Registro de Tarefas</div>
-          <div className="panel-title">Lembretes</div>
+          <div className="eyebrow">{t('reminders.eyebrow')}</div>
+          <div className="panel-title">{t('reminders.title')}</div>
         </div>
         <span className="chip">
           <span className={`dot ${pending > 0 ? 'warn' : 'on'}`} />
@@ -62,7 +64,7 @@ export function RemindersPanel() {
       <div style={{ display: 'flex', gap: 8, marginBottom: '0.9rem' }}>
         <input
           className="field"
-          placeholder="Novo lembrete…"
+          placeholder={t('reminders.new')}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && add()}

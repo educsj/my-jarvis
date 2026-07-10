@@ -8,14 +8,19 @@ import { ConversationPanel } from '@/components/ConversationPanel';
 import { RemindersPanel } from '@/components/RemindersPanel';
 import { AgendaPanel } from '@/components/AgendaPanel';
 import { KnowledgePanel } from '@/components/KnowledgePanel';
+import { SettingsDrawer } from '@/components/SettingsDrawer';
+import { I18nProvider } from '@/lib/i18n';
+import { applyTheme, savedTheme } from '@/lib/theme';
 
 export default function Home() {
   const [online, setOnline] = useState(false);
   const [brainOnline, setBrainOnline] = useState<boolean | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [google, setGoogle] = useState<GoogleStatus | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
+    applyTheme(savedTheme()); // aplica o tema salvo ao carregar
     (async () => {
       try {
         await api.health();
@@ -35,19 +40,26 @@ export default function Home() {
   }
 
   return (
-    <main
-      style={{
-        position: 'relative',
-        zIndex: 1,
-        maxWidth: 1240,
-        margin: '0 auto',
-        padding: 'clamp(1rem, 3vw, 2.25rem)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'clamp(1rem, 2vw, 1.5rem)',
-      }}
-    >
-      <StatusRail online={online} brainOnline={brainOnline} google={google} settings={settings} />
+    <I18nProvider>
+      <main
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          maxWidth: 1240,
+          margin: '0 auto',
+          padding: 'clamp(1rem, 3vw, 2.25rem)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'clamp(1rem, 2vw, 1.5rem)',
+        }}
+      >
+        <StatusRail
+          online={online}
+          brainOnline={brainOnline}
+          google={google}
+          settings={settings}
+          onOpenSettings={() => setSettingsOpen(true)}
+        />
 
       {!online && (
         <div className="panel mono" style={{ color: 'var(--color-danger)', fontSize: '0.85rem' }}>
@@ -89,6 +101,8 @@ export default function Home() {
           .dash { grid-template-columns: 1fr; }
         }
       `}</style>
-    </main>
+      </main>
+      <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+    </I18nProvider>
   );
 }

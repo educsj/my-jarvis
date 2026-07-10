@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/lib/api';
+import { useI18n } from '@/lib/i18n';
 
 interface Msg {
   role: 'user' | 'assistant';
@@ -34,6 +35,7 @@ export function ConversationPanel() {
   const [recording, setRecording] = useState(false);
   const [muted, setMuted] = useState(false);
   const [saveOff, setSaveOff] = useState(false); // modo privado (não salva histórico)
+  const { t } = useI18n();
   const logRef = useRef<HTMLDivElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -200,8 +202,8 @@ export function ConversationPanel() {
     >
       <div className="panel-head">
         <div>
-          <div className="eyebrow">Canal de Conversa</div>
-          <div className="panel-title">Falar com o Jarvis</div>
+          <div className="eyebrow">{t('conversation.eyebrow')}</div>
+          <div className="panel-title">{t('conversation.title')}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button
@@ -253,7 +255,7 @@ export function ConversationPanel() {
           </button>
           <span className="chip">
             <span className={`dot ${thinking ? 'warn' : 'on'}`} />
-            {thinking ? 'processando' : 'ocioso'}
+            {thinking ? t('conversation.thinking') : t('conversation.idle')}
           </span>
         </div>
       </div>
@@ -362,14 +364,14 @@ export function ConversationPanel() {
         </button>
         <input
           className="field mono"
-          placeholder={recording ? '● gravando… toque no quadrado para enviar' : '> mensagem para o jarvis'}
+          placeholder={recording ? '● gravando… toque no quadrado para enviar' : t('conversation.placeholder')}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && send()}
           disabled={recording}
         />
         <button className="btn btn-amber" onClick={send} disabled={thinking || recording || !input.trim()}>
-          Enviar
+          {t('conversation.send')}
         </button>
       </div>
     </section>

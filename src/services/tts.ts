@@ -5,6 +5,7 @@ import path from 'node:path';
 import { env } from '../config/env.js';
 import { run, binAvailable } from './voice/proc.js';
 import { toSpeakableText } from './voice/speakable.js';
+import { getSelectedVoicePath } from './voice/voices.js';
 
 /**
  * TTS (Text-to-Speech) — Piper.
@@ -45,8 +46,10 @@ export async function synthesizeSpeech(rawText: string): Promise<SynthesisResult
   const fullPath = path.join(TEMP_AUDIO_DIR, filename);
 
   try {
+    // Voz ativa (selecionável no painel); cai para o padrão do .env.
+    const voice = await getSelectedVoicePath();
     // Piper lê o texto pelo stdin e grava o WAV no caminho de --output_file.
-    const result = await run(env.PIPER_BIN, ['-m', env.PIPER_MODEL, '-f', fullPath], text);
+    const result = await run(env.PIPER_BIN, ['-m', voice, '-f', fullPath], text);
     if (result.code !== 0 || !existsSync(fullPath)) {
       console.error('[TTS] piper falhou:', result.stderr.slice(-300));
       const txt = `speech-${randomUUID()}.txt`;

@@ -29,6 +29,9 @@ token.json
 # Notas internas de trabalho (não versionar)
 CONTINUAR.md
 
+# Configuração local da voz ativa (Piper)
+voice-config.json
+
 # Build e Logs
 dist/
 build/

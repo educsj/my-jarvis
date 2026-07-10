@@ -37,6 +37,9 @@ third-party cloud unless you explicitly enable Google Calendar.
   files by drag-and-drop.
 - **📱 Android app** — React Native (Expo) with a fluid push-to-talk screen;
   build an `.apk` via EAS.
+- **⚙️ Settings panel** — one discreet drawer to switch the UI language (PT/EN),
+  pick a theme (extensible), choose the assistant's voice (Piper voices listed
+  per language), and browse the audit log.
 - **🔐 Privacy controls** — chat history is saved by default, but a one-click
   **private mode** keeps a conversation ephemeral; you can also **save a
   conversation into the knowledge base** (any subfolder) so it teaches the
