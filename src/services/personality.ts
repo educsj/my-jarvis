@@ -106,8 +106,9 @@ export function buildSystemPrompt(params: PersonalityParams): string {
     const rotulo = i === 0 ? ' (hoje)' : i === 1 ? ' (amanhã)' : '';
     diasRef.push(`- ${wd}, dia ${dia} → ${iso}${rotulo}`);
   }
+  const ano = agora.getFullYear();
   const dataReferencia = [
-    `Hoje é ${hojeExtenso}. Tabela de datas — encontre nela a data que o usuário mencionar (por dia da semana OU por "dia N"):`,
+    `Hoje é ${hojeExtenso}. Tabela dos próximos 21 dias — use-a para "hoje", "amanhã", dias da semana e "dia N" QUANDO o usuário NÃO citar um mês:`,
     ...diasRef,
   ].join('\n');
 
@@ -117,7 +118,7 @@ export function buildSystemPrompt(params: PersonalityParams): string {
     'Regra sobre ferramentas: use as ferramentas de calendário APENAS quando o usuário pedir explicitamente para ver ou marcar um compromisso. Para qualquer outra pergunta, responda você mesmo diretamente — nunca desvie uma pergunta comum para o calendário nem diga que "não tem informações".',
     'Responda SEMPRE no mesmo idioma em que o usuário escreveu. Se a mensagem estiver em português, responda inteiramente em português — NUNCA misture palavras ou frases em inglês no meio. Fale de forma natural para ser dita em voz alta (evite formatação markdown pesada).',
     dataReferencia,
-    'Ao agendar: localize a data EXATA na tabela acima (conferindo dia da semana e número do dia). Se o dia estiver além da tabela, conte a partir de hoje. Gere sempre a data em ISO 8601 (YYYY-MM-DDTHH:mm:ss). "Meio-dia" = 12:00. Se o pedido do usuário chegou truncado ou confuso (ex.: transcrição de voz), peça para ele confirmar a data em vez de adivinhar.',
+    `Para determinar a data de um agendamento: (1) se o usuário disser um MÊS explícito (ex.: "16 de agosto"), use esse mês com o ano ${ano} (ou o próximo ano se o mês já tiver passado) e NÃO use a tabela; (2) senão, localize a data na tabela acima conferindo o dia da semana e o número do dia. Gere sempre ISO 8601 (YYYY-MM-DDTHH:mm:ss). "Meio-dia" = 12:00; se o horário não for informado, use 09:00. Se o pedido chegou truncado ou confuso (ex.: transcrição de voz), peça para o usuário confirmar a data em vez de adivinhar.`,
     '',
     `## Humor (${humor}/100)`,
     humorInstruction(humor),
