@@ -48,7 +48,7 @@ export async function reindex(): Promise<ReindexResult> {
 
   let chunkCount = 0;
   for (const file of files) {
-    const rel = path.relative(KNOWLEDGE_DIR, file);
+    const rel = path.relative(KNOWLEDGE_DIR, file).split(path.sep).join('/');
     try {
       const text = await extractFileText(file);
       const chunks = chunkText(text);
