@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import path from 'node:path';
 import { z } from 'zod';
 import { handleUserMessage } from '../services/chat.js';
 import { isOllamaAvailable } from '../services/ollama.js';
@@ -8,6 +9,11 @@ import { synthesizeSpeech, isTtsConfigured } from '../services/tts.js';
 const chatTextSchema = z.object({
   message: z.string().min(1),
 });
+
+/** URL tocável do áudio (só quando o TTS real gerou um .wav); senão null. */
+function audioUrl(audioPath: string, real: boolean): string | null {
+  return real ? `/audio/${path.basename(audioPath)}` : null;
+}
 
 export async function chatRoutes(app: FastifyInstance) {
   // GET /chat/status — o "cérebro" (Ollama) está disponível? Voz real ativa?
@@ -29,7 +35,15 @@ export async function chatRoutes(app: FastifyInstance) {
     }
 
     const result = await handleUserMessage(parsed.data.message);
-    return result;
+
+    // Sintetiza a resposta em voz (Piper) para o cliente reproduzir.
+    let url: string | null = null;
+    if (result.reply) {
+      const speech = await synthesizeSpeech(result.reply);
+      url = audioUrl(speech.audioPath, speech.real);
+    }
+
+    return { ...result, audioUrl: url };
   });
 
   // POST /chat/voice — pipeline de voz: áudio → STT → LLM (personalidade) → TTS → áudio
@@ -59,6 +73,7 @@ export async function chatRoutes(app: FastifyInstance) {
       personality: result.personality,
       audioPath: speech.audioPath,
       audioReal: speech.real,
+      audioUrl: audioUrl(speech.audioPath, speech.real),
     };
   });
 }

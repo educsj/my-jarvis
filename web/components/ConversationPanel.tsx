@@ -32,9 +32,29 @@ export function ConversationPanel() {
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [muted, setMuted] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const mutedRef = useRef(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  function toggleMute() {
+    setMuted((m) => {
+      mutedRef.current = !m;
+      if (mutedRef.current) audioRef.current?.pause();
+      return !m;
+    });
+  }
+
+  // Toca a voz (Piper) da resposta, se houver e não estiver mudo.
+  function speak(url: string | null) {
+    if (!url || mutedRef.current) return;
+    audioRef.current?.pause();
+    const a = new Audio(`${api.baseUrl}${url}`);
+    audioRef.current = a;
+    a.play().catch(() => {});
+  }
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' });
@@ -52,6 +72,7 @@ export function ConversationPanel() {
         ...m,
         { role: 'assistant', content: res.reply, offline: !res.ok, tools: res.toolsUsed },
       ]);
+      speak(res.audioUrl);
     } catch (err) {
       setMessages((m) => [
         ...m,
@@ -76,6 +97,7 @@ export function ConversationPanel() {
         { role: 'user', content: res.transcription || '(áudio)' },
         { role: 'assistant', content: res.reply, offline: !res.ok, tools: res.toolsUsed },
       ]);
+      speak(res.audioUrl);
     } catch (err) {
       setMessages((m) => [
         ...m,
@@ -137,10 +159,22 @@ export function ConversationPanel() {
           <div className="eyebrow">Canal de Conversa</div>
           <div className="panel-title">Falar com o Jarvis</div>
         </div>
-        <span className="chip">
-          <span className={`dot ${thinking ? 'warn' : 'on'}`} />
-          {thinking ? 'processando' : 'ocioso'}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            type="button"
+            onClick={toggleMute}
+            aria-label={muted ? 'Ativar voz' : 'Silenciar voz'}
+            title={muted ? 'Voz desligada — clique para ligar' : 'Voz ligada — clique para silenciar'}
+            className="btn"
+            style={{ padding: '0.35rem 0.55rem', fontSize: '0.9rem', opacity: muted ? 0.5 : 1 }}
+          >
+            {muted ? '🔇' : '🔊'}
+          </button>
+          <span className="chip">
+            <span className={`dot ${thinking ? 'warn' : 'on'}`} />
+            {thinking ? 'processando' : 'ocioso'}
+          </span>
+        </div>
       </div>
 
       <div

@@ -58,6 +58,8 @@ export interface ChatReply {
   ok: boolean;
   personality: { humorLevel: number; empathyLevel: number };
   toolsUsed: string[];
+  /** URL do áudio TTS da resposta (Piper), ou null se indisponível. */
+  audioUrl: string | null;
 }
 
 export interface VoiceReply extends ChatReply {

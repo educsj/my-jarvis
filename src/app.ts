@@ -1,7 +1,9 @@
 import Fastify from 'fastify';
+import path from 'node:path';
 import cors from '@fastify/cors';
 import sensible from '@fastify/sensible';
 import multipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
 import { settingsRoutes } from './routes/settings.routes.js';
 import { remindersRoutes } from './routes/reminders.routes.js';
 import { chatRoutes } from './routes/chat.routes.js';
@@ -23,6 +25,13 @@ export function buildApp() {
   });
   app.register(sensible);
   app.register(multipart, { limits: { fileSize: 25 * 1024 * 1024 } }); // até 25MB de áudio
+
+  // Serve os áudios gerados pelo TTS (Piper) em /audio/<arquivo>.wav
+  app.register(fastifyStatic, {
+    root: path.resolve(process.cwd(), 'temp_audio'),
+    prefix: '/audio/',
+    decorateReply: false,
+  });
 
   // Healthcheck
   app.get('/health', async () => ({ status: 'ok', service: 'meu-jarvis-backend' }));
