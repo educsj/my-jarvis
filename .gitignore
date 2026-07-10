@@ -22,6 +22,10 @@ token.json
 /uploads/
 /prisma/*.db
 
+# Documentos pessoais da base de conhecimento (mantém só o README de exemplo)
+/knowledge/*
+!/knowledge/README.md
+
 # Build e Logs
 dist/
 build/

@@ -7,6 +7,7 @@ import { PersonalityMatrix } from '@/components/PersonalityMatrix';
 import { ConversationPanel } from '@/components/ConversationPanel';
 import { RemindersPanel } from '@/components/RemindersPanel';
 import { AgendaPanel } from '@/components/AgendaPanel';
+import { KnowledgePanel } from '@/components/KnowledgePanel';
 
 export default function Home() {
   const [online, setOnline] = useState(false);
@@ -59,6 +60,7 @@ export default function Home() {
         <div className="col">
           <PersonalityMatrix settings={settings} onUpdate={updateSettings} />
           <AgendaPanel />
+          <KnowledgePanel />
         </div>
         <div className="col">
           <ConversationPanel />

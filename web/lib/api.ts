@@ -121,6 +121,13 @@ export const api = {
     return res.json() as Promise<VoiceReply>;
   },
 
+  knowledgeStatus: () =>
+    request<{ chunks: number; files: number; sources: string[]; dir: string }>('/knowledge/status'),
+  reindexKnowledge: () =>
+    request<{ files: number; chunks: number; errors: string[] }>('/knowledge/reindex', {
+      method: 'POST',
+    }),
+
   googleStatus: () => request<GoogleStatus>('/auth/google/status'),
   calendarToday: () => request<{ events: CalendarEvent[] }>('/calendar/today'),
 
