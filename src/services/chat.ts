@@ -53,8 +53,15 @@ export async function handleUserMessage(userText: string): Promise<AssistantRepl
     { role: 'user', content: userText },
   ];
 
-  // Só oferece as ferramentas de calendário quando o Google está configurado.
-  const tools = isGoogleConfigured() ? calendarTools : undefined;
+  // Só oferece as ferramentas de calendário quando o Google está configurado E a
+  // mensagem parece ser sobre agenda. Modelos menores (ex.: abliterated 8B) tendem
+  // a emitir JSON de tool malformado em perguntas gerais se as tools estão sempre
+  // presentes — a heurística mantém o chat geral limpo e a agenda funcionando.
+  const wantsCalendar =
+    /\bagend|\bmarc[ae]r?\b|\bmarque\b|compromisso|reuni[aã]o|\bevento|calend[aá]ri|minha agenda|meus? compromissos?/i.test(
+      userText
+    );
+  const tools = isGoogleConfigured() && wantsCalendar ? calendarTools : undefined;
   const toolsUsed: string[] = [];
 
   // Modelo vem do banco (fonte da verdade, editável e coerente com a UI);
