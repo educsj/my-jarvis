@@ -1,275 +1,189 @@
-# 🤖 Meu Jarvis — Assistente Pessoal Inteligente
+# 🤖 Meu Jarvis — Local Voice AI Assistant
 
-Assistente de voz pessoal, **100% local e open-source**, focado em privacidade, gestão de tarefas e integração de calendário. Inspirado nos robôs de _Interestelar_ (TARS/CASE), com parâmetros ajustáveis de **humor** e **empatia**.
+**English** · [Português 🇧🇷](./README.pt-BR.md)
 
-## 🧱 Stack Tecnológico
+A **100% local, privacy-first personal voice assistant** with an adjustable
+personality, a Retrieval-Augmented knowledge base, Google Calendar integration,
+a web dashboard, and an Android app. Inspired by the robots **TARS/CASE** from
+*Interstellar* — including their tunable "humor" and "honesty" dials.
 
-| Camada           | Tecnologia                                            |
-| ---------------- | ----------------------------------------------------- |
-| Backend          | Node.js + TypeScript + **Fastify**                    |
-| Banco de Dados   | **SQLite** com **Prisma ORM** (v6)                    |
-| IA (Cérebro)     | Ollama (Llama 3.1 8B / Qwen 2.5) — _Fase 2_           |
-| Voz              | Whisper.cpp (STT) + Piper TTS — _Fase 2_              |
-| Frontend Web     | Next.js + TailwindCSS + Framer Motion — _Fase 4_      |
-| Frontend Mobile  | React Native (Expo) — _Fase 5_                        |
-| Acesso Remoto    | Cloudflare Tunnels / Tailscale                        |
+Everything runs on your own machine: the language model (via [Ollama](https://ollama.com)),
+speech-to-text ([Whisper.cpp](https://github.com/ggml-org/whisper.cpp)), and
+text-to-speech ([Piper](https://github.com/rhasspy/piper)). Nothing is sent to a
+third-party cloud unless you explicitly enable Google Calendar.
 
-## 🚦 Progresso por Fase
+> ⚠️ Personal/portfolio project. No credentials or personal data are committed —
+> see [Privacy & Security](#-privacy--security).
 
-- [x] **Fase 1 — Setup do Backend e Banco de Dados** ✅
-- [x] **Fase 2 — Motor de Inteligência e Áudio** (Ollama + Whisper + Piper) ✅
-- [x] **Fase 3 — Integração Google Calendar** (OAuth2 + Function Calling) ✅
-- [x] **Fase 4 — Frontend Web** (Next.js) ✅
-- [x] **Fase 5 — Frontend Mobile** (Expo / `.apk`) ✅
+## ✨ Features
 
----
+- **🎛️ Personality Matrix** — six 0–100 sliders (Humor, Empathy, Caution,
+  Objectivity, Formality, Proactivity) that dynamically rewrite the LLM's system
+  prompt on every request. Set it blunt, warm, sarcastic, concise… your call.
+- **🗣️ Voice in & out** — talk to it (push-to-talk) and it talks back, all local:
+  Whisper transcribes, the LLM answers with the chosen persona, Piper speaks.
+- **🧠 Uncensored, steerable brain** — runs any Ollama model; ships configured for
+  an abliterated Llama 3.1 8B that follows the system prompt closely. It knows the
+  current date/time and honestly admits it has no internet/real-time data.
+- **📅 Google Calendar (function calling)** — "schedule lunch next Saturday at
+  noon" actually creates the event, with reliable date handling (weekdays,
+  "day N", named months).
+- **📚 Knowledge Base (RAG)** — drop your documents (`.txt`, `.md`, `.pdf`,
+  `.docx`, `.csv`, `.xlsx`, subfolders supported) and it answers from them with
+  semantic search (Ollama embeddings), citing the source.
+- **✅ Reminders** — simple local to-do CRUD.
+- **🖥️ Premium web dashboard** — Next.js "cockpit" UI to chat (text or mic),
+  tune the personality, manage reminders, see your agenda, and upload knowledge
+  files by drag-and-drop.
+- **📱 Android app** — React Native (Expo) with a fluid push-to-talk screen;
+  build an `.apk` via EAS.
+- **🌐 Remote access** — expose the backend with a Cloudflare Tunnel so the mobile
+  app works from anywhere.
 
-## ✅ Fase 1 — O que foi entregue
+## 🧱 Tech Stack
 
-### 1. Projeto Node.js + TypeScript
-- ESM (`"type": "module"`), `tsx` para dev com hot-reload.
-- **ESLint** (flat config v9 + `typescript-eslint`) e **Prettier** configurados e integrados.
+| Layer | Tech |
+| --- | --- |
+| Backend | Node.js + TypeScript + **Fastify** |
+| Database | **SQLite** + **Prisma** |
+| LLM / Embeddings | **Ollama** (chat model + `nomic-embed-text`) |
+| Speech-to-Text | **Whisper.cpp** (+ ffmpeg) |
+| Text-to-Speech | **Piper** |
+| Web | **Next.js 16** + React 19 + Tailwind v4 + Framer Motion |
+| Mobile | **React Native (Expo SDK 57)** + `expo-audio` |
+| Remote access | **Cloudflare Tunnel** |
 
-### 2. SQLite + Prisma ORM
-- Banco local `prisma/dev.db` (ignorado pelo Git).
-- Migração inicial aplicada + `seed` com dados de exemplo.
+## 🏗️ Architecture
 
-### 3. Models (`prisma/schema.prisma`)
-- **User** — dono do assistente (MVP mono-usuário).
-- **Reminder** — lembretes/tarefas (título, descrição, data, status).
-- **ChatHistory** — histórico de conversa (role, conteúdo, áudio).
-- **Settings** — 🎛️ **Matriz de Personalidade**: `humorLevel` e `empathyLevel` (0–100) + `llmModel`.
-
-### 4. Rotas CRUD (Fastify + validação Zod)
-
-| Método | Rota              | Descrição                                    |
-| ------ | ----------------- | -------------------------------------------- |
-| GET    | `/health`         | Healthcheck                                  |
-| GET    | `/settings`       | Lê a matriz de personalidade                 |
-| PUT    | `/settings`       | Ajusta Humor / Empatia / modelo LLM          |
-| GET    | `/reminders`      | Lista lembretes                              |
-| GET    | `/reminders/:id`  | Busca um lembrete                            |
-| POST   | `/reminders`      | Cria lembrete                                |
-| PUT    | `/reminders/:id`  | Atualiza lembrete                            |
-| DELETE | `/reminders/:id`  | Remove lembrete                              |
-
-Validação de entrada com **Zod** (ex.: `humorLevel` fora de 0–100 → HTTP 400).
-
----
-
-## ✅ Fase 2 — O que foi entregue
-
-### 1. Integração Ollama + Matriz de Personalidade dinâmica
-- Cliente HTTP para a API do Ollama (`/api/chat`, porta 11434) com timeout e **degradação graciosa** (se o Ollama estiver offline, retorna mensagem clara em vez de quebrar).
-- **Gerenciador de System Prompt** (`services/personality.ts`): converte `humorLevel`/`empathyLevel` (0–100) do banco em instruções de tom, estilo TARS/CASE. Ex.: humor alto → sarcástico; empatia baixa → factual/eficiente. O prompt é remontado **a cada requisição**, então mexer nos sliders muda a persona na hora.
-- Histórico de conversa persistido em `ChatHistory` e reinjetado como contexto (últimas 10 mensagens).
-
-### 2. STT e TTS (Whisper + Piper) — reais e configuráveis
-- `services/stt.ts` — **Whisper.cpp**: converte o áudio para WAV 16kHz (ffmpeg) e transcreve. Ativa quando `WHISPER_BIN`/`WHISPER_MODEL` estão no `.env`; senão, usa transcrição simulada.
-- `services/tts.ts` — **Piper TTS**: sintetiza um `.wav` com voz em português. Ativa quando `PIPER_BIN`/`PIPER_MODEL` estão no `.env`; senão, grava um placeholder.
-- Status visível em `GET /chat/status` (`sttReal` / `ttsReal`). Passo a passo de instalação dos binários/modelos na seção **🎙️ Voz real** abaixo.
-
-### 3. Rotas de conversa
-
-| Método | Rota          | Descrição                                                   |
-| ------ | ------------- | ----------------------------------------------------------- |
-| POST   | `/chat`       | Conversa por **texto** (testar cérebro + personalidade)     |
-| POST   | `/chat/voice` | Pipeline de **voz**: áudio → STT → LLM → TTS → áudio         |
-
-> ⚙️ **Para o cérebro funcionar de verdade:** instale o [Ollama](https://ollama.com), rode `ollama pull llama3.1:8b` e deixe-o ativo. Sem isso, as rotas respondem com o aviso "[Cérebro offline]" (por design).
-
----
-
-## ✅ Fase 3 — O que foi entregue
-
-### 1. Fluxo OAuth2 com Google Calendar
-- Cliente OAuth2 (`services/google/oauth.ts`) com escopo `calendar.events`, `access_type=offline` (refresh token) e **refresh automático** de tokens.
-- Tokens salvos em `token.json` (protegido pelo `.gitignore`).
-- **Degradação graciosa:** sem credenciais no `.env`, as rotas respondem com aviso claro (HTTP 503/409) em vez de quebrar.
-
-### 2. Function Calling no LLM
-- Ferramentas expostas ao modelo (`services/google/tools.ts`): `get_today_events` e `create_calendar_event`.
-- O `services/chat.ts` roda um **loop de tools**: o LLM decide chamar uma função → o backend executa no Google Calendar → devolve o resultado ao modelo → ele responde em linguagem natural (com a personalidade aplicada). As tools só são oferecidas quando o Google está configurado.
-
-### 3. Rotas
-
-| Método | Rota                     | Descrição                                  |
-| ------ | ------------------------ | ------------------------------------------ |
-| GET    | `/auth/google`           | Inicia o consentimento OAuth2              |
-| GET    | `/auth/google/callback`  | Recebe o code e salva os tokens            |
-| GET    | `/auth/google/status`    | `configured` / `connected`                 |
-| DELETE | `/auth/google`           | Desconecta (remove tokens)                 |
-| GET    | `/calendar/today`        | Eventos do dia (`?date=YYYY-MM-DD`)        |
-| POST   | `/calendar/events`       | Cria evento diretamente                    |
-
-### 🔑 Como obter as credenciais do Google (quando quiser ativar)
-1. Acesse o [Google Cloud Console](https://console.cloud.google.com) → crie um projeto.
-2. **APIs e serviços → Biblioteca** → ative a **Google Calendar API**.
-3. **Tela de consentimento OAuth** → tipo "Externo" → adicione seu e-mail como usuário de teste.
-4. **Credenciais → Criar credenciais → ID do cliente OAuth** → tipo "Aplicativo da Web".
-5. Em **URIs de redirecionamento autorizados**, adicione: `http://localhost:3333/auth/google/callback`
-6. Copie o **Client ID** e **Client Secret** para o `.env` (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`).
-7. Reinicie o servidor, abra `http://localhost:3333/auth/google` e autorize.
-
----
-
-## ✅ Fase 4 — O que foi entregue
-
-Painel web em **Next.js 16 + React 19 + Tailwind v4 + Framer Motion**, no diretório `/web`.
-
-### Direção visual — "Cockpit Monolith"
-Estética dos robôs TARS/CASE de _Interestelar_: instrumentos matte escuros, sinal âmbar (luz de cabine), tipografia mono-forward (Space Grotesk + JetBrains Mono). O **elemento-assinatura** é a **Matriz de Personalidade** com barras segmentadas arrastáveis (eco da cena "What's your humor setting, TARS?").
-
-### Painéis (todos ligados à API, em tempo real)
-- **Status Rail** — status de Backend, Cérebro (Ollama + modelo), Calendar e leitura HUM/EMP.
-- **Matriz de Personalidade** — sliders segmentados de Humor (âmbar) e Empatia (gelo); arrastar/teclas ajustam e persistem via `PUT /settings`, com quip dinâmico estilo TARS.
-- **Canal de Conversa** — chat com o Jarvis (`POST /chat`), animação de ondas sonoras enquanto processa, badges de ferramentas usadas.
-- **Lembretes** — CRUD completo (criar, concluir, remover) com animação de lista.
-- **Agenda** — status do Google Calendar; botão de conectar quando configurado, eventos do dia quando conectado.
-
-### Detalhes de robustez
-- Reveals de entrada em **CSS** (resistentes a falha de JS) + `prefers-reduced-motion` respeitado; foco de teclado visível.
-- Cliente de API tipado em `web/lib/api.ts`; base configurável via `NEXT_PUBLIC_API_URL`.
-
-### Rodar o painel
-```bash
-cd web
-npm install
-npm run dev
-# → http://localhost:3000  (backend precisa estar rodando em http://localhost:3333)
+```
+                 ┌───────────────┐        ┌───────────────┐
+  Web (Next.js)  │               │        │  Ollama       │  (LLM + embeddings)
+  Mobile (Expo) ─┤   Backend     ├────────┤  Whisper.cpp  │  (STT)
+  via Cloudflare │  (Fastify)    │        │  Piper        │  (TTS)
+  Tunnel        ─┤               ├────┐   └───────────────┘
+                 └──────┬────────┘    │
+                        │             └── Google Calendar API (OAuth2)
+              ┌─────────┴─────────┐
+              │ SQLite (Prisma)   │  settings · reminders · chat · knowledge
+              │ knowledge/ folder │  your documents (RAG source)
+              └───────────────────┘
 ```
 
-> ⚙️ **Notas de dev (aprendidas na Fase 4):**
-> - O backend usa `127.0.0.1` como base (evita ambiguidade IPv6 do `localhost`).
-> - CORS habilita `PUT`/`DELETE` (necessário para editar settings e remover lembretes pelo navegador).
-> - `allowedDevOrigins` no `next.config.ts` libera `localhost` e `127.0.0.1` em dev.
+The **personality parameters** live in the DB and are injected into the system
+prompt per request. For each chat message the backend: (1) retrieves relevant
+knowledge chunks (RAG), (2) offers Calendar tools only when the message is about
+scheduling, (3) calls the local LLM, (4) runs any tool calls, and (5) synthesizes
+speech with Piper.
 
----
+## 📁 Project Structure
 
-## ✅ Fase 5 — O que foi entregue
-
-App **React Native (Expo SDK 57)** no diretório `/mobile`, com a mesma identidade visual do web.
-
-### Interface
-- **Tela única fluida** com botão central **Push-to-Talk** (segure para gravar, solte para enviar).
-- **Anel pulsante** durante a gravação e **ondas sonoras animadas** (API `Animated` nativa) enquanto grava/processa.
-- Header com telemetria: status do backend + leitura HUM/EMP (lida ao vivo de `/settings`).
-- Cartões de transcrição (você) e resposta (Jarvis).
-
-### Áudio e integração
-- Gravação via **`expo-audio`** (`useAudioRecorder`) com permissão de microfone declarada em `app.json` (iOS + Android).
-- Envia o áudio para `POST /chat/voice` (multipart) → transcrição + resposta com a personalidade correta.
-- URL do backend em `src/config.ts` — use o **IP LAN** da máquina ou a **URL do túnel** (Cloudflare/Tailscale) para dispositivo físico.
-
-### Build do `.apk` (EAS)
-- `eas.json` com perfil **preview** gerando `.apk` (`buildType: apk`) e **production** gerando `.aab`.
-- Scripts: `npm run build:apk` (preview/APK) e `npm run build:aab` (produção/bundle).
-
-### Rodar / gerar o APK
-```bash
-cd mobile
-npm install
-npm start          # abre o Expo — leia o QR code com o app Expo Go
-# ou, para gerar o instalável Android:
-npx eas login      # (interativo) precisa de conta Expo — https://expo.dev
-npm run build:apk  # eas build -p android --profile preview → gera o .apk na nuvem
+```
+├── src/                    # Backend (Fastify)
+│   ├── routes/             # settings, reminders, chat, google, knowledge
+│   ├── services/
+│   │   ├── ollama.ts       # LLM chat client (+ tool-call loop)
+│   │   ├── personality.ts  # personality matrix → system prompt
+│   │   ├── stt.ts, tts.ts  # Whisper / Piper (via child_process)
+│   │   ├── google/         # OAuth2 + Calendar + function-calling tools
+│   │   └── knowledge/      # RAG: parse, embed, store, search
+│   └── server.ts
+├── prisma/                 # schema + migrations
+├── web/                    # Next.js dashboard
+├── mobile/                 # Expo app (push-to-talk, EAS build)
+└── knowledge/              # your documents (RAG) — git-ignored except README
 ```
 
-> ⚠️ **O build do `.apk` roda na nuvem do EAS e exige login na sua conta Expo** (passo interativo). Todo o app e a configuração (`eas.json`, permissões, scripts) já estão prontos — basta você autenticar e disparar o build. Validado localmente com `expo-doctor` (20/20) e bundle Android (Metro).
+## 🚀 Getting Started
 
----
+### Prerequisites
+- **Node.js 20+**
+- **[Ollama](https://ollama.com)** running locally
+- (optional, for real voice) **ffmpeg**, **Whisper.cpp**, **Piper**
 
-## 🎙️ Voz real (Whisper + Piper) — opcional
+### 1. Backend
+```bash
+cp .env.example .env          # adjust paths if needed
+npm install
+npx prisma migrate dev        # create the SQLite DB
+npm run dev                   # http://localhost:3333
+```
 
-Sem isto, a voz funciona em modo simulado. Para ativar STT/TTS de verdade (Windows):
+### 2. Pull the models
+```bash
+ollama pull mannix/llama3.1-8b-abliterated:tools-q4_k_m   # chat (or any model)
+ollama pull nomic-embed-text                              # embeddings (RAG)
+```
+You can switch the chat model anytime via `PUT /settings { "llmModel": "..." }`.
 
-1. **ffmpeg** (converte o áudio do celular para o formato do Whisper):
-   ```powershell
-   winget install --id Gyan.FFmpeg --accept-source-agreements --accept-package-agreements
-   ```
-   Reabra o terminal depois (ou aponte `FFMPEG_BIN` para o caminho completo do `ffmpeg.exe`).
+### 3. Web dashboard
+```bash
+cd web && npm install && npm run dev   # http://localhost:3000
+```
 
-2. **Whisper.cpp** (STT):
-   - Baixe o binário Windows em https://github.com/ggml-org/whisper.cpp/releases (procure `whisper-cli.exe` / `main.exe`).
-   - Baixe um modelo em https://huggingface.co/ggerganov/whisper.cpp/tree/main. Recomendado `ggml-medium.bin` (~1.5GB, bem preciso em PT); `ggml-small.bin` (~466MB) é a alternativa mais leve/rápida.
-   - Coloque ambos em, ex.: `C:\jarvis-voice\whisper\`.
+### 4. Mobile app (optional)
+```bash
+cd mobile && npm install
+# set the backend URL in src/config.ts (LAN IP or tunnel URL)
+npm start                # open with Expo Go
+npm run build:apk        # eas build -p android --profile preview
+```
 
-3. **Piper** (TTS):
-   - Baixe `piper_windows_amd64.zip` em https://github.com/rhasspy/piper/releases e extraia (`piper.exe`).
-   - Baixe uma voz pt-BR (`.onnx` **e** `.onnx.json`), ex.: `pt_BR-faber-medium`, em
-     https://huggingface.co/rhasspy/piper-voices/tree/main/pt/pt_BR — mantenha os dois arquivos juntos.
-   - Coloque em, ex.: `C:\jarvis-voice\piper\`.
+## 🎙️ Real Voice (Whisper + Piper)
 
-4. **Preencha o `.env`** (use caminhos absolutos, com barras duplas no Windows):
-   ```env
-   FFMPEG_BIN="ffmpeg"
-   WHISPER_BIN="C:\\jarvis-voice\\whisper\\whisper-cli.exe"
-   WHISPER_MODEL="C:\\jarvis-voice\\whisper\\ggml-small.bin"
-   PIPER_BIN="C:\\jarvis-voice\\piper\\piper.exe"
-   PIPER_MODEL="C:\\jarvis-voice\\piper\\pt_BR-faber-medium.onnx"
-   ```
+Optional — without it, STT/TTS run in a simulated stub mode. On Windows:
+1. `winget install Gyan.FFmpeg`
+2. Download a Whisper build ([whisper.cpp releases](https://github.com/ggml-org/whisper.cpp/releases))
+   + a model (`ggml-medium.bin` recommended for PT-BR accuracy).
+3. Download [Piper](https://github.com/rhasspy/piper/releases) + a voice
+   (e.g., `pt_BR-faber-medium`).
+4. Point `WHISPER_BIN`, `WHISPER_MODEL`, `PIPER_BIN`, `PIPER_MODEL`, `FFMPEG_BIN`
+   in `.env` to those files.
+5. Check `GET /chat/status` → `sttReal: true`, `ttsReal: true`.
 
-5. **Reinicie o backend** e confira `GET /chat/status` → `sttReal: true`, `ttsReal: true`.
+## 📅 Google Calendar
 
----
+1. In the [Google Cloud Console](https://console.cloud.google.com): create a
+   project, enable the **Calendar API**, configure the OAuth consent screen
+   (add yourself as a test user), and create an **OAuth Client (Web)** with
+   redirect URI `http://localhost:3333/auth/google/callback`.
+2. Put the `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `.env`.
+3. Open `http://localhost:3333/auth/google` and authorize.
 
-## 🚀 Como rodar
+## 📚 Knowledge Base (RAG)
+
+Put documents in `knowledge/` (subfolders welcome), then **Reindex** from the
+dashboard or `POST /knowledge/reindex`. Supported: `.txt`, `.md`, `.pdf`,
+`.docx`, `.csv`, `.xlsx`. The assistant answers from them and cites the source.
+You can also upload files directly from the dashboard (drag & drop).
+
+## 🌐 Remote Access
 
 ```bash
-# 1. Instalar dependências
-npm install
-
-# 2. Criar o .env a partir do exemplo
-cp .env.example .env
-
-# 3. Aplicar migração e gerar o Prisma Client
-npx prisma migrate dev
-
-# 4. (opcional) Popular dados de exemplo
-npm run db:seed
-
-# 5. Subir o backend em modo dev
-npm run dev
-# → http://localhost:3333
+npm run tunnel   # cloudflared tunnel --url http://localhost:3333
 ```
+Point the mobile app (`mobile/src/config.ts`) to the generated
+`*.trycloudflare.com` URL.
 
-### Scripts úteis
+## 🔌 API Overview
 
-| Script                  | Ação                                  |
-| ----------------------- | ------------------------------------- |
-| `npm run dev`           | Servidor com hot-reload               |
-| `npm run build`         | Compila TypeScript → `dist/`          |
-| `npm run start`         | Roda a build de produção              |
-| `npm run lint`          | ESLint                                |
-| `npm run format`        | Prettier                              |
-| `npm run prisma:studio` | Interface visual do banco             |
-| `npm run db:seed`       | Popula dados de exemplo               |
+| Method | Route | Description |
+| --- | --- | --- |
+| GET | `/health`, `/chat/status` | Service & brain/voice status |
+| GET/PUT | `/settings` | Read / update the personality matrix |
+| GET/POST/PUT/DELETE | `/reminders` | Reminders CRUD |
+| POST | `/chat`, `/chat/voice` | Chat by text / by audio |
+| DELETE | `/chat/history` | Reset conversation context |
+| GET | `/auth/google`, `/auth/google/status` | Calendar OAuth2 |
+| GET/POST/DELETE | `/calendar/*` | List / create / delete events |
+| GET/POST | `/knowledge/status`, `/knowledge/reindex`, `/knowledge/upload` | Knowledge base |
 
----
+## 🔒 Privacy & Security
 
-## 🔒 Regra de Ouro (Segurança)
+- Runs locally; the LLM, STT and TTS never leave your machine.
+- Secrets and personal data are **never committed**: `.env`, `token.json`,
+  `credentials.json`, `*.db`, and your `knowledge/` documents are all git-ignored.
+- Google integration is opt-in; tokens are stored locally in `token.json`.
 
-Nenhum dado sensível ou credencial é versionado. O `.gitignore` protege `.env`, `credentials.json`, `token.json`, `*.pem` e os bancos `*.db` desde o primeiro commit. Use sempre o `.env.example` como referência.
+## 📄 License
 
-## 📁 Estrutura
-
-```
-Meu Jarvis/
-├── prisma/
-│   ├── schema.prisma        # Models
-│   ├── seed.ts              # Dados de exemplo
-│   └── migrations/          # Histórico de migrações
-├── src/
-│   ├── config/env.ts        # Validação de variáveis de ambiente (Zod)
-│   ├── lib/
-│   │   ├── prisma.ts        # Prisma Client (singleton)
-│   │   └── ensureUser.ts    # Usuário padrão (MVP mono-usuário)
-│   ├── routes/
-│   │   ├── settings.routes.ts
-│   │   └── reminders.routes.ts
-│   ├── app.ts               # Instância Fastify + registro de plugins/rotas
-│   └── server.ts            # Bootstrap do servidor
-├── .env.example
-├── eslint.config.js
-└── tsconfig.json
-```
+[MIT](./LICENSE)

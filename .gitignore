@@ -26,6 +26,9 @@ token.json
 /knowledge/*
 !/knowledge/README.md
 
+# Notas internas de trabalho (não versionar)
+CONTINUAR.md
+
 # Build e Logs
 dist/
 build/

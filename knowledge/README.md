@@ -1,14 +1,23 @@
-# Base de Conhecimento do Jarvis
+# Base de Conhecimento do Jarvis / Jarvis Knowledge Base
 
-Coloque nesta pasta os documentos que você quer que o Jarvis consulte para
-responder (`.txt`, `.md`, `.pdf`, `.docx`, `.csv`, `.xlsx`). Depois, reindexe
-pelo painel ou chamando `POST /knowledge/reindex`.
+**PT-BR:** Coloque nesta pasta os documentos que você quer que o Jarvis consulte
+para responder (`.txt`, `.md`, `.pdf`, `.docx`, `.csv`, `.xlsx`). Você pode
+organizar em subpastas por assunto (ex.: `trabalho/`, `projetos/`, `pessoal/`).
+Depois, reindexe pelo painel (botão **Reindexar**) ou via `POST /knowledge/reindex`.
 
-Esta pasta fica dentro do OneDrive, então sincroniza automaticamente — você
-pode adicionar arquivos de qualquer dispositivo.
+Como esta pasta fica dentro do seu diretório sincronizado (OneDrive/Drive), os
+arquivos ficam disponíveis remotamente sem precisar copiá-los para o celular — o
+app mobile acessa o backend pelo túnel.
 
-## Exemplo (pode apagar)
+> Os documentos pessoais são ignorados pelo Git (veja `.gitignore`); apenas este
+> arquivo de exemplo é versionado.
 
-O projeto "Meu Jarvis" é um assistente pessoal de voz local do Eduardo.
-A cor favorita do Eduardo é azul-petróleo. O Wi-Fi da casa chama-se "Endurance"
-e a senha padrão dos testes internos é "cooper2014".
+---
+
+**EN:** Drop the documents you want Jarvis to use as context here (`.txt`, `.md`,
+`.pdf`, `.docx`, `.csv`, `.xlsx`). You can organize them into subfolders by topic
+(e.g., `work/`, `projects/`, `personal/`). Then reindex from the dashboard
+(**Reindex** button) or via `POST /knowledge/reindex`.
+
+Personal documents are ignored by Git (see `.gitignore`); only this example file
+is versioned.
