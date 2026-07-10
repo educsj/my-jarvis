@@ -4,6 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { env } from '../config/env.js';
 import { run, binAvailable } from './voice/proc.js';
+import { toSpeakableText } from './voice/speakable.js';
 
 /**
  * TTS (Text-to-Speech) — Piper.
@@ -29,7 +30,9 @@ export function isTtsConfigured(): boolean {
   );
 }
 
-export async function synthesizeSpeech(text: string): Promise<SynthesisResult> {
+export async function synthesizeSpeech(rawText: string): Promise<SynthesisResult> {
+  // Normaliza horários ("13:00" → "treze horas") para a fala soar natural.
+  const text = toSpeakableText(rawText);
   await mkdir(TEMP_AUDIO_DIR, { recursive: true });
 
   if (!isTtsConfigured()) {
