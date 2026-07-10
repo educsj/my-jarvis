@@ -7,9 +7,13 @@ import { handleUserMessage } from '../services/chat.js';
 import { isOllamaAvailable } from '../services/ollama.js';
 import { transcribeAudio, isSttConfigured } from '../services/stt.js';
 import { synthesizeSpeech, isTtsConfigured } from '../services/tts.js';
+import { audit, readRecentLogs } from '../services/audit.js';
 
+const messageRole = z.enum(['user', 'assistant', 'system', 'tool']);
 const chatTextSchema = z.object({
   message: z.string().min(1),
+  saveHistory: z.boolean().optional(),
+  context: z.array(z.object({ role: messageRole, content: z.string() })).optional(),
 });
 
 /** URL tocável do áudio (só quando o TTS real gerou um .wav); senão null. */
@@ -43,16 +47,33 @@ export async function chatRoutes(app: FastifyInstance) {
         .send({ error: 'Dados inválidos', details: z.treeifyError(parsed.error) });
     }
 
-    const result = await handleUserMessage(parsed.data.message);
+    try {
+      const result = await handleUserMessage(parsed.data.message, {
+        saveHistory: parsed.data.saveHistory,
+        sessionContext: parsed.data.saveHistory === false ? (parsed.data.context ?? []) : undefined,
+      });
 
-    // Sintetiza a resposta em voz (Piper) para o cliente reproduzir.
-    let url: string | null = null;
-    if (result.reply) {
-      const speech = await synthesizeSpeech(result.reply);
-      url = audioUrl(speech.audioPath, speech.real);
+      // Sintetiza a resposta em voz (Piper) para o cliente reproduzir.
+      let url: string | null = null;
+      if (result.reply) {
+        const speech = await synthesizeSpeech(result.reply);
+        url = audioUrl(speech.audioPath, speech.real);
+      }
+
+      return { ...result, audioUrl: url };
+    } catch (err) {
+      const message = (err as Error).message;
+      await audit({ type: 'error', error: message, userText: parsed.data.message });
+      return reply.status(500).send({ error: message });
     }
+  });
 
-    return { ...result, audioUrl: url };
+  // GET /logs — auditoria: últimas interações de hoje (?limit=, ?errors=1)
+  app.get('/logs', async (request) => {
+    const q = z
+      .object({ limit: z.coerce.number().max(500).optional(), errors: z.coerce.boolean().optional() })
+      .parse(request.query);
+    return { entries: await readRecentLogs(q.limit ?? 100, q.errors ?? false) };
   });
 
   // POST /chat/voice — pipeline de voz: áudio → STT → LLM (personalidade) → TTS → áudio
@@ -63,12 +84,13 @@ export async function chatRoutes(app: FastifyInstance) {
     }
 
     const audioBuffer = await file.toBuffer();
+    const saveHistory = (request.query as { saveHistory?: string }).saveHistory !== 'false';
 
     // 1. STT — transcreve o áudio recebido
     const transcription = await transcribeAudio(audioBuffer, file.filename);
 
     // 2. LLM — gera a resposta já com a personalidade correta
-    const result = await handleUserMessage(transcription.text);
+    const result = await handleUserMessage(transcription.text, { saveHistory });
 
     // 3. TTS — sintetiza a resposta em áudio
     const speech = await synthesizeSpeech(result.reply);

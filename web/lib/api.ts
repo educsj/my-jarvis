@@ -103,17 +103,30 @@ export const api = {
     request<Reminder>(`/reminders/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteReminder: (id: string) => request<void>(`/reminders/${id}`, { method: 'DELETE' }),
 
-  chat: (message: string) =>
-    request<ChatReply>('/chat', { method: 'POST', body: JSON.stringify({ message }) }),
+  chat: (
+    message: string,
+    opts?: { saveHistory?: boolean; context?: { role: string; content: string }[] }
+  ) => request<ChatReply>('/chat', { method: 'POST', body: JSON.stringify({ message, ...opts }) }),
 
   clearChatHistory: () => request<{ cleared: boolean }>('/chat/history', { method: 'DELETE' }),
 
+  saveConversation: (data: {
+    folder?: string;
+    title: string;
+    messages: { role: string; content: string }[];
+  }) =>
+    request<{ saved: string }>('/knowledge/save-conversation', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
   // Envia o áudio gravado para a pipeline de voz (STT → LLM → TTS).
   // Sem header Content-Type: o browser define o boundary do multipart.
-  chatVoice: async (blob: Blob): Promise<VoiceReply> => {
+  chatVoice: async (blob: Blob, saveHistory = true): Promise<VoiceReply> => {
     const form = new FormData();
     form.append('audio', blob, 'speech.webm');
-    const res = await fetch(`${BASE_URL}/chat/voice`, { method: 'POST', body: form });
+    const url = `${BASE_URL}/chat/voice${saveHistory ? '' : '?saveHistory=false'}`;
+    const res = await fetch(url, { method: 'POST', body: form });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       throw new ApiError(res.status, body?.error ?? `Erro ${res.status}`);

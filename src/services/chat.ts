@@ -5,6 +5,7 @@ import { chat as ollamaChat, type ChatMessage } from './ollama.js';
 import { isGoogleConfigured } from './google/oauth.js';
 import { calendarTools, runCalendarTool } from './google/tools.js';
 import { search as searchKnowledge, type SearchHit } from './knowledge/store.js';
+import { audit } from './audit.js';
 
 /** Monta o bloco de contexto com os trechos recuperados da base de conhecimento. */
 function buildKnowledgeContext(hits: SearchHit[]): string {
@@ -26,6 +27,15 @@ export interface AssistantReply {
   personality: { humorLevel: number; empathyLevel: number };
   /** Ferramentas (Function Calling) efetivamente executadas nesta resposta. */
   toolsUsed: string[];
+  /** Fontes da base de conhecimento usadas (RAG). */
+  kbSources: string[];
+}
+
+export interface ChatOptions {
+  /** Se false, não persiste esta interação no ChatHistory (modo privado). */
+  saveHistory?: boolean;
+  /** Contexto da sessão enviado pelo cliente (usado no modo sem salvar). */
+  sessionContext?: ChatMessage[];
 }
 
 /**
@@ -35,7 +45,11 @@ export interface AssistantReply {
  *  3. Chama o Ollama, resolvendo chamadas de ferramenta (Google Calendar) em loop.
  *  4. Persiste a mensagem do usuário e a resposta final no ChatHistory.
  */
-export async function handleUserMessage(userText: string): Promise<AssistantReply> {
+export async function handleUserMessage(
+  userText: string,
+  opts: ChatOptions = {}
+): Promise<AssistantReply> {
+  const started = Date.now();
   const user = await ensureDefaultUser();
   const settings = user.settings!;
 
@@ -48,15 +62,20 @@ export async function handleUserMessage(userText: string): Promise<AssistantRepl
     proactivityLevel: settings.proactivityLevel,
   });
 
-  const recent = await prisma.chatHistory.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
-    take: HISTORY_LIMIT,
-  });
-
-  const history: ChatMessage[] = recent
-    .reverse()
-    .map((m) => ({ role: m.role as ChatMessage['role'], content: m.content }));
+  // Contexto: usa o enviado pelo cliente (modo privado) ou o histórico do banco.
+  let history: ChatMessage[];
+  if (opts.sessionContext) {
+    history = opts.sessionContext.slice(-HISTORY_LIMIT);
+  } else {
+    const recent = await prisma.chatHistory.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      take: HISTORY_LIMIT,
+    });
+    history = recent
+      .reverse()
+      .map((m) => ({ role: m.role as ChatMessage['role'], content: m.content }));
+  }
 
   // RAG: busca trechos relevantes na base de conhecimento (silencioso se falhar/vazio).
   const kbHits = await searchKnowledge(userText).catch(() => [] as SearchHit[]);
@@ -102,9 +121,10 @@ export async function handleUserMessage(userText: string): Promise<AssistantRepl
     result = await ollamaChat(messages, { tools, model });
   }
 
-  // Só persiste a interação quando o cérebro respondeu de verdade — evita poluir
-  // o contexto com mensagens de fallback "[Cérebro offline]" que o LLM depois imita.
-  if (result.ok) {
+  // Persiste só quando o cérebro respondeu de verdade E o modo de salvar está
+  // ativo (padrão). Evita poluir o contexto com fallbacks e respeita o modo privado.
+  const willSave = result.ok && opts.saveHistory !== false;
+  if (willSave) {
     await prisma.chatHistory.create({
       data: { userId: user.id, role: 'user', content: userText },
     });
@@ -113,11 +133,27 @@ export async function handleUserMessage(userText: string): Promise<AssistantRepl
     });
   }
 
+  const kbSources = [...new Set(kbHits.map((h) => h.source))];
+
+  // Auditoria (nunca quebra a requisição).
+  void audit({
+    type: 'chat',
+    ok: result.ok,
+    model: result.model,
+    ms: Date.now() - started,
+    userText,
+    reply: result.content,
+    toolsUsed,
+    kbSources,
+    saved: willSave,
+  });
+
   return {
     reply: result.content,
     model: result.model,
     ok: result.ok,
     personality: { humorLevel: settings.humorLevel, empathyLevel: settings.empathyLevel },
     toolsUsed,
+    kbSources,
   };
 }

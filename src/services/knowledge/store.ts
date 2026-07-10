@@ -73,7 +73,7 @@ export interface SearchHit {
 }
 
 /** Busca os trechos mais relevantes para uma consulta (RAG). */
-export async function search(query: string, topK = 4, minScore = 0.55): Promise<SearchHit[]> {
+export async function search(query: string, topK = 4, minScore = 0.6): Promise<SearchHit[]> {
   const all = await prisma.knowledgeChunk.findMany();
   if (all.length === 0) return [];
 

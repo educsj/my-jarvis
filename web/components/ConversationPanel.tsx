@@ -33,6 +33,7 @@ export function ConversationPanel() {
   const [thinking, setThinking] = useState(false);
   const [recording, setRecording] = useState(false);
   const [muted, setMuted] = useState(false);
+  const [saveOff, setSaveOff] = useState(false); // modo privado (não salva histórico)
   const logRef = useRef<HTMLDivElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -47,12 +48,44 @@ export function ConversationPanel() {
     });
   }
 
+  // Modo privado (não salvar histórico) — persistido no localStorage.
+  useEffect(() => {
+    setSaveOff(localStorage.getItem('chat-saveoff') === '1');
+  }, []);
+  function toggleSaveOff() {
+    setSaveOff((v) => {
+      localStorage.setItem('chat-saveoff', v ? '0' : '1');
+      return !v;
+    });
+  }
+
   // Limpa a conversa (contexto): apaga o histórico no backend e o log local.
   async function clearConversation() {
     if (thinking) return;
     audioRef.current?.pause();
     await api.clearChatHistory().catch(() => {});
     setMessages([]);
+  }
+
+  // Salva a conversa atual como documento na base de conhecimento.
+  async function saveConversation() {
+    if (thinking || messages.length === 0) return;
+    const title = window.prompt('Título da conversa:', 'Conversa ' + new Date().toLocaleDateString('pt-BR'));
+    if (!title) return;
+    const folder = window.prompt('Pasta (opcional, ex.: trabalho, saas, pessoal):', '') || undefined;
+    try {
+      const r = await api.saveConversation({
+        folder,
+        title,
+        messages: messages.map((m) => ({ role: m.role, content: m.content })),
+      });
+      setMessages((m) => [
+        ...m,
+        { role: 'assistant', content: `💾 Conversa salva na base de conhecimento: ${r.saved}` },
+      ]);
+    } catch (e) {
+      setMessages((m) => [...m, { role: 'assistant', content: `Falha ao salvar: ${(e as Error).message}`, offline: true }]);
+    }
   }
 
   // Toca a voz (Piper) da resposta, se houver e não estiver mudo.
@@ -75,7 +108,10 @@ export function ConversationPanel() {
     setMessages((m) => [...m, { role: 'user', content: text }]);
     setThinking(true);
     try {
-      const res = await api.chat(text);
+      const res = await api.chat(text, {
+        saveHistory: !saveOff,
+        context: saveOff ? messages.map((m) => ({ role: m.role, content: m.content })) : undefined,
+      });
       setMessages((m) => [
         ...m,
         { role: 'assistant', content: res.reply, offline: !res.ok, tools: res.toolsUsed },
@@ -99,7 +135,7 @@ export function ConversationPanel() {
   async function sendVoice(blob: Blob) {
     setThinking(true);
     try {
-      const res = await api.chatVoice(blob);
+      const res = await api.chatVoice(blob, !saveOff);
       setMessages((m) => [
         ...m,
         { role: 'user', content: res.transcription || '(áudio)' },
@@ -168,6 +204,32 @@ export function ConversationPanel() {
           <div className="panel-title">Falar com o Jarvis</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            type="button"
+            onClick={saveConversation}
+            disabled={thinking || messages.length === 0}
+            aria-label="Salvar conversa"
+            title="Salvar esta conversa na base de conhecimento"
+            className="btn"
+            style={{ padding: '0.35rem 0.55rem', fontSize: '0.9rem' }}
+          >
+            💾
+          </button>
+          <button
+            type="button"
+            onClick={toggleSaveOff}
+            aria-label={saveOff ? 'Ativar salvamento' : 'Modo privado'}
+            title={saveOff ? 'Modo privado ligado — nada é salvo (clique para salvar histórico)' : 'Histórico é salvo — clique para modo privado'}
+            className="btn"
+            style={{
+              padding: '0.35rem 0.55rem',
+              fontSize: '0.9rem',
+              borderColor: saveOff ? 'var(--color-amber)' : undefined,
+              background: saveOff ? 'rgba(232,161,58,0.12)' : undefined,
+            }}
+          >
+            {saveOff ? '🕶️' : '💬'}
+          </button>
           <button
             type="button"
             onClick={clearConversation}
