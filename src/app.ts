@@ -35,6 +35,13 @@ export function buildApp() {
     decorateReply: false,
   });
 
+  // Serve os previews de HTML gerados pelo assistente em /preview/<arquivo>.html
+  app.register(fastifyStatic, {
+    root: path.resolve(process.cwd(), 'previews'),
+    prefix: '/preview/',
+    decorateReply: false,
+  });
+
   // Healthcheck
   app.get('/health', async () => ({ status: 'ok', service: 'meu-jarvis-backend' }));
 

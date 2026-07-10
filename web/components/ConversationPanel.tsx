@@ -11,6 +11,7 @@ interface Msg {
   offline?: boolean;
   tools?: string[];
   coder?: boolean;
+  previewUrl?: string | null;
 }
 
 /** Ondas sonoras enquanto o assistente "pensa" (eco do painel de voz do app). */
@@ -117,7 +118,14 @@ export function ConversationPanel() {
       });
       setMessages((m) => [
         ...m,
-        { role: 'assistant', content: res.reply, offline: !res.ok, tools: res.toolsUsed, coder: res.coder },
+        {
+          role: 'assistant',
+          content: res.reply,
+          offline: !res.ok,
+          tools: res.toolsUsed,
+          coder: res.coder,
+          previewUrl: res.previewUrl,
+        },
       ]);
       speak(res.audioUrl);
     } catch (err) {
@@ -142,7 +150,14 @@ export function ConversationPanel() {
       setMessages((m) => [
         ...m,
         { role: 'user', content: res.transcription || '(áudio)' },
-        { role: 'assistant', content: res.reply, offline: !res.ok, tools: res.toolsUsed, coder: res.coder },
+        {
+          role: 'assistant',
+          content: res.reply,
+          offline: !res.ok,
+          tools: res.toolsUsed,
+          coder: res.coder,
+          previewUrl: res.previewUrl,
+        },
       ]);
       speak(res.audioUrl);
     } catch (err) {
@@ -322,6 +337,17 @@ export function ConversationPanel() {
                   <div className="mono" style={{ marginTop: 6, fontSize: '0.66rem', color: 'var(--color-amber)' }}>
                     ⌨ coder
                   </div>
+                )}
+                {m.previewUrl && (
+                  <a
+                    href={`${api.baseUrl}${m.previewUrl}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-amber"
+                    style={{ display: 'inline-block', marginTop: 8, fontSize: '0.7rem', padding: '0.4rem 0.7rem' }}
+                  >
+                    ▶ Abrir preview
+                  </a>
                 )}
               </div>
             </motion.div>

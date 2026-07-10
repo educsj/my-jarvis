@@ -30,7 +30,9 @@ terceiros, a menos que você ative explicitamente o Google Calendar.
   internet nem a dados em tempo real.
 - **⌨️ Modo programação (roteamento automático)** — perguntas de código são
   roteadas automaticamente para um modelo especializado (`qwen2.5-coder`),
-  enquanto o resto mantém o modelo de personalidade sem censura.
+  enquanto o resto mantém o modelo de personalidade sem censura. **O HTML que ele
+  gera ganha um link de preview ao vivo** servido pelo backend (funciona local e
+  pelo túnel).
 - **📅 Google Calendar (function calling)** — "agende almoço sábado ao meio-dia"
   realmente cria o evento, com tratamento de data confiável (dias da semana,
   "dia N", meses por nome).

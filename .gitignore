@@ -19,6 +19,7 @@ token.json
 *.db
 *.db-journal
 /temp_audio/
+/previews/
 /uploads/
 /prisma/*.db
 

@@ -65,6 +65,8 @@ export interface ChatReply {
   toolsUsed: string[];
   /** true quando a resposta veio do modelo especializado em programação. */
   coder: boolean;
+  /** URL de preview ao vivo quando a resposta contém HTML (ou null). */
+  previewUrl: string | null;
   /** URL do áudio TTS da resposta (Piper), ou null se indisponível. */
   audioUrl: string | null;
 }

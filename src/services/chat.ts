@@ -8,6 +8,7 @@ import { search as searchKnowledge, type SearchHit } from './knowledge/store.js'
 import { audit } from './audit.js';
 import { detectLang } from './lang.js';
 import { isCodingRequest, coderSystemPrompt } from './coding.js';
+import { maybeCreatePreview } from './preview.js';
 import { env } from '../config/env.js';
 
 /** Monta o bloco de contexto com os trechos recuperados da base de conhecimento. */
@@ -34,6 +35,8 @@ export interface AssistantReply {
   kbSources: string[];
   /** true quando a resposta veio do modelo especializado em programação. */
   coder: boolean;
+  /** URL de preview ao vivo quando a resposta contém HTML (ou null). */
+  previewUrl: string | null;
 }
 
 export interface ChatOptions {
@@ -148,6 +151,9 @@ export async function handleUserMessage(
     });
   }
 
+  // Se a resposta contém HTML, gera um preview ao vivo.
+  const previewUrl = result.ok ? await maybeCreatePreview(result.content).catch(() => null) : null;
+
   const kbSources = [...new Set(kbHits.map((h) => h.source))];
 
   // Auditoria (nunca quebra a requisição).
@@ -172,5 +178,6 @@ export async function handleUserMessage(
     toolsUsed,
     kbSources,
     coder: coding,
+    previewUrl,
   };
 }
