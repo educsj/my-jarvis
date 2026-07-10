@@ -19,33 +19,23 @@ Git: 3 commits em `main` (último `af44ed8`). Backend na raiz, `web/` e `mobile/
 
 ## 🔄 TAREFA EM ANDAMENTO (retomar aqui)
 
-**Baixando o modelo `dolphin3`** (LLM sem censura, base Llama 3.1 8B, ~4.9GB) via API do Ollama.
-- Comando: `curl -s http://127.0.0.1:11434/api/pull -d '{"name":"dolphin3"}'` (rodou em background).
-- Log do progresso: `scratchpad/pull.log`.
-- **Como checar se terminou:** `curl -s http://127.0.0.1:11434/api/tags | grep dolphin3` → se aparecer, está pronto.
+**Escolha do modelo LLM.** Histórico:
+- `dolphin3` testado: personalidade OK, mas **NÃO suporta tools** ("does not support tools") e o usuário achou que **ainda tem censura**. Descartado para o objetivo.
+- Objetivo do usuário: **sem censura TOTAL**. Decisão: usar modelo **abliterated**.
+- **Baixando agora:** `mannix/llama3.1-8b-abliterated:tools-q4_k_m` (abliterated = remove recusa nos pesos; a tag `tools-` mantém function calling). Log: `scratchpad/pull2.log`.
+- **Checar se terminou:** `curl -s http://127.0.0.1:11434/api/tags | grep abliterated`.
 
-### Assim que o download terminar, fazer os 2 testes prometidos:
-1. **Personalidade (humor 90 / empatia 40):**
+### Assim que o download terminar:
+1. Apontar o backend para ele:
    ```bash
-   curl -s -X POST http://127.0.0.1:3333/chat -H "Content-Type: application/json" \
-     -d '{"message":"Bom dia, Jarvis. Como estou hoje?"}'
+   curl -X PUT http://localhost:3333/settings -H "Content-Type: application/json" \
+     -d '{"llmModel":"mannix/llama3.1-8b-abliterated:tools-q4_k_m"}'
    ```
-   Esperado: resposta com tom sarcástico/bem-humorado (dolphin3 segue o system prompt sem censura).
+2. **Teste personalidade + sem censura:** `POST /chat` com uma pergunta que o dolphin recusaria — confirmar que responde sem freios.
+3. **Teste tools:** `POST http://localhost:11434/api/chat` com `model` = a tag acima, um pedido de agendamento e o array `tools` (ver exemplo no histórico do chat / código em src/services/google/tools.ts). Se vier `tool_calls` → agenda por voz funciona também. 🎯
+4. Se decepcionar, alternativas: `mannix/llama3.1-8b-abliterated:tools-q6_k` (mais fiel) ou `huihui_ai/dolphin3-abliterated`.
 
-2. **Capacidade de function calling (isolado, sem depender do Google):**
-   Chamar o Ollama direto com as tools do Calendar e um pedido de agendamento, e ver se retorna `message.tool_calls`:
-   ```bash
-   curl -s http://127.0.0.1:11434/api/chat -d '{
-     "model":"dolphin3","stream":false,
-     "messages":[{"role":"user","content":"Agende uma reunião amanhã às 14h chamada Dentista"}],
-     "tools":[{"type":"function","function":{"name":"create_calendar_event",
-       "description":"Agenda um compromisso","parameters":{"type":"object",
-       "properties":{"summary":{"type":"string"},"startDateTime":{"type":"string"}},
-       "required":["summary","startDateTime"]}}}]
-   }'
-   ```
-   Se vier `tool_calls` → a agenda por voz vai funcionar com o dolphin3.
-   Se **não** vier → cair para `hermes3` (bom em tools) ou um modelo abliterated. Trocar é fácil (ver abaixo).
+Fontes sobre abliterated: ollama.com/mannix/llama3.1-8b-abliterated , locallyuncensored.com/blog/abliterated-models-guide.html
 
 ## ⚙️ Configuração de modelo (já aplicada)
 - O chat usa `settings.llmModel` do **banco** (fonte da verdade, coerente com o chip da UI), com fallback a `OLLAMA_MODEL` do `.env`.
