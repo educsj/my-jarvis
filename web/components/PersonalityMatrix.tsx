@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Settings, PersonalityKey } from '@/lib/api';
-import { useI18n } from '@/lib/i18n';
+import { useI18n, type TKey } from '@/lib/i18n';
 
 const SEGMENTS = 20;
 
@@ -98,13 +98,13 @@ function SegmentSlider({
   );
 }
 
-/** Comentário no estilo TARS, derivado dos níveis atuais. */
-function tarsQuip(humor: number, empathy: number): string {
-  if (humor >= 90) return '"Ajuste de humor em 90%. Vou avisar quando começar a exagerar."';
-  if (humor <= 15 && empathy <= 15) return '"Modo direto. Sem rodeios, sem piadas."';
-  if (empathy >= 80) return '"Empatia alta. Estou aqui pra te ouvir de verdade."';
-  if (humor >= 60) return '"Humor calibrado. Espere alguma ironia ocasional."';
-  return '"Parâmetros aplicados. Pronto para operar."';
+/** Chave da tradução do comentário estilo TARS, derivado dos níveis atuais. */
+function tarsQuipKey(humor: number, empathy: number): TKey {
+  if (humor >= 90) return 'quip.humor90';
+  if (humor <= 15 && empathy <= 15) return 'quip.direct';
+  if (empathy >= 80) return 'quip.empathy';
+  if (humor >= 60) return 'quip.humor';
+  return 'quip.default';
 }
 
 const PARAMS: { key: PersonalityKey; label: string; code: string; accent: 'amber' | 'ice' }[] = [
@@ -188,7 +188,7 @@ export function PersonalityMatrix({
             {PARAMS.map((p) => (
               <SegmentSlider
                 key={p.key}
-                label={p.label}
+                label={t(`p.${p.key}` as TKey)}
                 code={p.code}
                 value={values[p.key]}
                 accent={p.accent}
@@ -209,7 +209,7 @@ export function PersonalityMatrix({
               paddingTop: '0.9rem',
             }}
           >
-            {tarsQuip(values.humorLevel, values.empathyLevel)}
+            {t(tarsQuipKey(values.humorLevel, values.empathyLevel))}
           </p>
         </>
       )}

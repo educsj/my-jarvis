@@ -279,8 +279,9 @@ export function ConversationPanel() {
             className="mono"
             style={{ color: 'var(--color-muted)', fontSize: '0.82rem', margin: 'auto', textAlign: 'center', maxWidth: 320, lineHeight: 1.6 }}
           >
-            Canal aberto. Pergunte sobre seus lembretes, sua agenda ou apenas converse.
-            <br />O tom da resposta segue a matriz de personalidade ao lado.
+            {t('chat.hintLine1')}
+            <br />
+            {t('chat.hintLine2')}
           </div>
         )}
 
@@ -293,7 +294,7 @@ export function ConversationPanel() {
               style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '82%' }}
             >
               <div className="eyebrow" style={{ marginBottom: 4, textAlign: m.role === 'user' ? 'right' : 'left' }}>
-                {m.role === 'user' ? 'Você' : 'Jarvis'}
+                {m.role === 'user' ? t('chat.you') : 'Jarvis'}
               </div>
               <div
                 style={{

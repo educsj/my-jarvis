@@ -9,7 +9,7 @@ import { RemindersPanel } from '@/components/RemindersPanel';
 import { AgendaPanel } from '@/components/AgendaPanel';
 import { KnowledgePanel } from '@/components/KnowledgePanel';
 import { SettingsDrawer } from '@/components/SettingsDrawer';
-import { I18nProvider } from '@/lib/i18n';
+import { I18nProvider, useI18n } from '@/lib/i18n';
 import { applyTheme, savedTheme } from '@/lib/theme';
 
 export default function Home() {
@@ -80,9 +80,7 @@ export default function Home() {
         </div>
       </div>
 
-      <footer className="eyebrow" style={{ textAlign: 'center', paddingTop: '0.5rem' }}>
-        Meu Jarvis · Assistente pessoal local · Fase 4 — Painel Web
-      </footer>
+        <Footer />
 
       <style>{`
         .dash {
@@ -104,5 +102,14 @@ export default function Home() {
       </main>
       <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </I18nProvider>
+  );
+}
+
+function Footer() {
+  const { t } = useI18n();
+  return (
+    <footer className="eyebrow" style={{ textAlign: 'center', paddingTop: '0.5rem' }}>
+      {t('footer')}
+    </footer>
   );
 }

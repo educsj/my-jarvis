@@ -18,7 +18,7 @@ const envSchema = z.object({
   FFMPEG_BIN: z.string().optional().default('ffmpeg'),
   WHISPER_BIN: z.string().optional().default(''),
   WHISPER_MODEL: z.string().optional().default(''),
-  WHISPER_LANG: z.string().optional().default('pt'),
+  WHISPER_LANG: z.string().optional().default('auto'),
   PIPER_BIN: z.string().optional().default(''),
   PIPER_MODEL: z.string().optional().default(''),
 

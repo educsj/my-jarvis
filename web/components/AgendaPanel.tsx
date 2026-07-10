@@ -15,7 +15,7 @@ export function AgendaPanel() {
   const [status, setStatus] = useState<GoogleStatus | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   useEffect(() => {
     (async () => {
@@ -34,7 +34,7 @@ export function AgendaPanel() {
     })();
   }, []);
 
-  const today = new Date().toLocaleDateString('pt-BR', {
+  const today = new Date().toLocaleDateString(lang === 'en' ? 'en-US' : 'pt-BR', {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
@@ -51,11 +51,15 @@ export function AgendaPanel() {
         </div>
         <span className="chip">
           <span className={`dot ${status?.connected ? 'on' : status?.configured ? 'warn' : 'off'}`} />
-          {status?.connected ? 'conectado' : status?.configured ? 'desconectado' : 'não config.'}
+          {status?.connected
+            ? t('agenda.connected')
+            : status?.configured
+              ? t('agenda.disconnected')
+              : t('agenda.notconfig')}
         </span>
       </div>
 
-      {loading && <div className="mono" style={{ color: 'var(--color-muted)', fontSize: '0.8rem' }}>Sincronizando…</div>}
+      {loading && <div className="mono" style={{ color: 'var(--color-muted)', fontSize: '0.8rem' }}>{t('agenda.syncing')}</div>}
 
       {!loading && !status?.configured && (
         <div className="mono" style={{ color: 'var(--color-muted)', fontSize: '0.8rem', lineHeight: 1.6 }}>
@@ -77,7 +81,7 @@ export function AgendaPanel() {
 
       {!loading && status?.connected && events.length === 0 && (
         <div className="mono" style={{ color: 'var(--color-muted)', fontSize: '0.8rem' }}>
-          Nenhum compromisso hoje. Dia livre.
+          {t('agenda.noevents')}
         </div>
       )}
 

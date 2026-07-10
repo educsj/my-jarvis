@@ -57,7 +57,7 @@ export function RemindersPanel() {
         </div>
         <span className="chip">
           <span className={`dot ${pending > 0 ? 'warn' : 'on'}`} />
-          {pending} pendente{pending === 1 ? '' : 's'}
+          {pending} {t('reminders.pending')}
         </span>
       </div>
 
@@ -75,10 +75,10 @@ export function RemindersPanel() {
       </div>
 
       <div className="scroll" style={{ maxHeight: 260, display: 'flex', flexDirection: 'column', gap: 6, paddingRight: 4 }}>
-        {loading && <div className="mono" style={{ color: 'var(--color-muted)', fontSize: '0.8rem' }}>Carregando…</div>}
+        {loading && <div className="mono" style={{ color: 'var(--color-muted)', fontSize: '0.8rem' }}>{t('reminders.loading')}</div>}
         {!loading && items.length === 0 && (
           <div className="mono" style={{ color: 'var(--color-muted)', fontSize: '0.8rem' }}>
-            Nenhum lembrete. Adicione o primeiro acima.
+            {t('reminders.empty')}
           </div>
         )}
         <AnimatePresence initial={false}>

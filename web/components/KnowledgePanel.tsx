@@ -120,8 +120,8 @@ export function KnowledgePanel() {
             msg ?? 'Processando…'
           ) : (
             <>
-              <span style={{ color: 'var(--color-amber)' }}>+ Arraste arquivos aqui</span> ou clique para
-              adicionar
+              <span style={{ color: 'var(--color-amber)' }}>{t('knowledge.dropTitle')}</span>{' '}
+              {t('knowledge.dropSub')}
               <br />
               .txt · .md · .pdf · .docx · .csv · .xlsx
             </>
