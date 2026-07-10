@@ -97,6 +97,7 @@ export function buildSystemPrompt(params: PersonalityParams): string {
     month: 'long',
     year: 'numeric',
   });
+  const horaAgora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   const diasRef: string[] = [];
   for (let i = 0; i < 21; i++) {
     const d = new Date(agora.getTime() + i * 24 * 60 * 60 * 1000);
@@ -108,7 +109,8 @@ export function buildSystemPrompt(params: PersonalityParams): string {
   }
   const ano = agora.getFullYear();
   const dataReferencia = [
-    `Hoje é ${hojeExtenso}. Tabela dos próximos 21 dias — use-a para "hoje", "amanhã", dias da semana e "dia N" QUANDO o usuário NÃO citar um mês:`,
+    `Data e hora atuais, do relógio do sistema: ${hojeExtenso}, ${horaAgora}. Se perguntarem que dia é hoje ou que horas são, responda EXATAMENTE com esses valores (não arredonde nem invente).`,
+    `Tabela dos próximos 21 dias — use-a para "hoje", "amanhã", dias da semana e "dia N" QUANDO o usuário NÃO citar um mês:`,
     ...diasRef,
   ].join('\n');
 
