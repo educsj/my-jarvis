@@ -37,6 +37,11 @@ third-party cloud unless you explicitly enable Google Calendar.
   files by drag-and-drop.
 - **📱 Android app** — React Native (Expo) with a fluid push-to-talk screen;
   build an `.apk` via EAS.
+- **🔐 Privacy controls** — chat history is saved by default, but a one-click
+  **private mode** keeps a conversation ephemeral; you can also **save a
+  conversation into the knowledge base** (any subfolder) so it teaches the
+  assistant, and every interaction is written to a local **audit log** for
+  debugging.
 - **🌐 Remote access** — expose the backend with a Cloudflare Tunnel so the mobile
   app works from anywhere.
 
@@ -171,11 +176,12 @@ Point the mobile app (`mobile/src/config.ts`) to the generated
 | GET | `/health`, `/chat/status` | Service & brain/voice status |
 | GET/PUT | `/settings` | Read / update the personality matrix |
 | GET/POST/PUT/DELETE | `/reminders` | Reminders CRUD |
-| POST | `/chat`, `/chat/voice` | Chat by text / by audio |
+| POST | `/chat`, `/chat/voice` | Chat by text / by audio (`saveHistory: false` for private mode) |
 | DELETE | `/chat/history` | Reset conversation context |
+| GET | `/logs` | Audit log of interactions/errors |
 | GET | `/auth/google`, `/auth/google/status` | Calendar OAuth2 |
 | GET/POST/DELETE | `/calendar/*` | List / create / delete events |
-| GET/POST | `/knowledge/status`, `/knowledge/reindex`, `/knowledge/upload` | Knowledge base |
+| GET/POST | `/knowledge/status`, `/knowledge/reindex`, `/knowledge/upload`, `/knowledge/save-conversation` | Knowledge base |
 
 ## 🔒 Privacy & Security
 

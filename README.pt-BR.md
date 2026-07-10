@@ -40,6 +40,11 @@ terceiros, a menos que você ative explicitamente o Google Calendar.
   enviar documentos por arrastar-e-soltar.
 - **📱 App Android** — React Native (Expo) com tela fluida de push-to-talk;
   gera `.apk` via EAS.
+- **🔐 Controles de privacidade** — o histórico é salvo por padrão, mas um
+  **modo privado** (um clique) mantém a conversa efêmera; você também pode
+  **salvar uma conversa na base de conhecimento** (em qualquer subpasta) para
+  ensinar o assistente, e toda interação é registrada num **log de auditoria**
+  local para depuração.
 - **🌐 Acesso remoto** — exponha o backend com um Cloudflare Tunnel para o app
   mobile funcionar de qualquer lugar.
 
@@ -174,11 +179,12 @@ gerada.
 | GET | `/health`, `/chat/status` | Status do serviço e do cérebro/voz |
 | GET/PUT | `/settings` | Ler / atualizar a matriz de personalidade |
 | GET/POST/PUT/DELETE | `/reminders` | CRUD de lembretes |
-| POST | `/chat`, `/chat/voice` | Conversa por texto / por áudio |
+| POST | `/chat`, `/chat/voice` | Conversa por texto / por áudio (`saveHistory: false` para modo privado) |
 | DELETE | `/chat/history` | Reseta o contexto da conversa |
+| GET | `/logs` | Log de auditoria de interações/erros |
 | GET | `/auth/google`, `/auth/google/status` | OAuth2 do Calendar |
 | GET/POST/DELETE | `/calendar/*` | Listar / criar / remover eventos |
-| GET/POST | `/knowledge/status`, `/knowledge/reindex`, `/knowledge/upload` | Base de conhecimento |
+| GET/POST | `/knowledge/status`, `/knowledge/reindex`, `/knowledge/upload`, `/knowledge/save-conversation` | Base de conhecimento |
 
 ## 🔒 Privacidade & Segurança
 
