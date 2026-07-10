@@ -10,6 +10,10 @@ const envSchema = z.object({
   OLLAMA_BASE_URL: z.string().url().default('http://127.0.0.1:11434'),
   OLLAMA_MODEL: z.string().default('mannix/llama3.1-8b-abliterated:tools-q4_k_m'),
 
+  // Base de conhecimento (RAG). Pasta com documentos e modelo de embeddings.
+  KNOWLEDGE_DIR: z.string().default('./knowledge'),
+  EMBED_MODEL: z.string().default('nomic-embed-text'),
+
   // Voz (STT/TTS). Se vazios, os serviços usam os stubs simulados.
   FFMPEG_BIN: z.string().optional().default('ffmpeg'),
   WHISPER_BIN: z.string().optional().default(''),

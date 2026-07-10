@@ -50,6 +50,18 @@ model ChatHistory {
   @@index([userId])
 }
 
+// Base de Conhecimento (RAG): trechos de documentos + embeddings para busca.
+model KnowledgeChunk {
+  id         String   @id @default(uuid())
+  source     String // caminho relativo do arquivo de origem
+  chunkIndex Int
+  content    String
+  embedding  String // JSON com o vetor de embedding
+  createdAt  DateTime @default(now())
+
+  @@index([source])
+}
+
 // Matriz de Personalidade (estilo robôs de Interestelar - TARS/CASE)
 model Settings {
   id               String   @id @default(uuid())

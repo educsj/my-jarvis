@@ -8,6 +8,7 @@ import { settingsRoutes } from './routes/settings.routes.js';
 import { remindersRoutes } from './routes/reminders.routes.js';
 import { chatRoutes } from './routes/chat.routes.js';
 import { googleRoutes } from './routes/google.routes.js';
+import { knowledgeRoutes } from './routes/knowledge.routes.js';
 
 export function buildApp() {
   const app = Fastify({
@@ -46,6 +47,7 @@ export function buildApp() {
   app.register(remindersRoutes);
   app.register(chatRoutes);
   app.register(googleRoutes);
+  app.register(knowledgeRoutes);
 
   return app;
 }

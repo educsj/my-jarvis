@@ -4,6 +4,17 @@ import { buildSystemPrompt } from './personality.js';
 import { chat as ollamaChat, type ChatMessage } from './ollama.js';
 import { isGoogleConfigured } from './google/oauth.js';
 import { calendarTools, runCalendarTool } from './google/tools.js';
+import { search as searchKnowledge, type SearchHit } from './knowledge/store.js';
+
+/** Monta o bloco de contexto com os trechos recuperados da base de conhecimento. */
+function buildKnowledgeContext(hits: SearchHit[]): string {
+  const trechos = hits.map((h) => `[fonte: ${h.source}]\n${h.content}`).join('\n\n---\n\n');
+  return [
+    'Base de conhecimento do usuário. Use estas informações para responder quando forem relevantes e cite a fonte entre parênteses. Se não forem relevantes para a pergunta, ignore-as.',
+    '',
+    trechos,
+  ].join('\n');
+}
 
 const HISTORY_LIMIT = 10; // últimas N mensagens usadas como contexto
 const MAX_TOOL_ROUNDS = 4; // trava de segurança contra loop infinito de tools
@@ -47,8 +58,12 @@ export async function handleUserMessage(userText: string): Promise<AssistantRepl
     .reverse()
     .map((m) => ({ role: m.role as ChatMessage['role'], content: m.content }));
 
+  // RAG: busca trechos relevantes na base de conhecimento (silencioso se falhar/vazio).
+  const kbHits = await searchKnowledge(userText).catch(() => [] as SearchHit[]);
+
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
+    ...(kbHits.length ? [{ role: 'system' as const, content: buildKnowledgeContext(kbHits) }] : []),
     ...history,
     { role: 'user', content: userText },
   ];
