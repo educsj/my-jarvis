@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api, type Settings, type GoogleStatus } from '@/lib/api';
+import { api, type Settings, type GoogleStatus, type PersonalityKey } from '@/lib/api';
 import { StatusRail } from '@/components/StatusRail';
 import { PersonalityMatrix } from '@/components/PersonalityMatrix';
 import { ConversationPanel } from '@/components/ConversationPanel';
@@ -28,7 +28,7 @@ export default function Home() {
     })();
   }, []);
 
-  async function updateSettings(data: Partial<Pick<Settings, 'humorLevel' | 'empathyLevel'>>) {
+  async function updateSettings(data: Partial<Record<PersonalityKey, number>>) {
     const updated = await api.updateSettings(data);
     setSettings(updated);
   }

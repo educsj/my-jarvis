@@ -52,12 +52,16 @@ model ChatHistory {
 
 // Matriz de Personalidade (estilo robôs de Interestelar - TARS/CASE)
 model Settings {
-  id           String   @id @default(uuid())
-  humorLevel   Int      @default(50) // 0-100
-  empathyLevel Int      @default(50) // 0-100
-  llmModel     String   @default("llama3.1:8b")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String   @id @default(uuid())
+  humorLevel       Int      @default(50) // 0-100
+  empathyLevel     Int      @default(50) // 0-100
+  cautionLevel     Int      @default(50) // 0-100: baixo = direto/sem avisos; alto = cauteloso
+  objectivityLevel Int      @default(50) // 0-100: alto = conciso; baixo = detalhado
+  formalityLevel   Int      @default(50) // 0-100: baixo = casual; alto = formal
+  proactivityLevel Int      @default(50) // 0-100: baixo = só o pedido; alto = sugere
+  llmModel         String   @default("llama3.1:8b")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

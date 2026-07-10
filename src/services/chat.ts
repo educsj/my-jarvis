@@ -31,6 +31,10 @@ export async function handleUserMessage(userText: string): Promise<AssistantRepl
   const systemPrompt = buildSystemPrompt({
     humorLevel: settings.humorLevel,
     empathyLevel: settings.empathyLevel,
+    cautionLevel: settings.cautionLevel,
+    objectivityLevel: settings.objectivityLevel,
+    formalityLevel: settings.formalityLevel,
+    proactivityLevel: settings.proactivityLevel,
   });
 
   const recent = await prisma.chatHistory.findMany({

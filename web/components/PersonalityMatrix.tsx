@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import type { Settings } from '@/lib/api';
+import type { Settings, PersonalityKey } from '@/lib/api';
 
 const SEGMENTS = 20;
 
@@ -64,6 +64,7 @@ function SegmentSlider({
         aria-valuemax={100}
         tabIndex={0}
         onPointerDown={(e) => {
+          if (e.button !== 0) return; // ignora botões não-primários
           dragging.current = true;
           e.currentTarget.setPointerCapture(e.pointerId);
           onChange(valueFromEvent(e.clientX));
@@ -72,6 +73,7 @@ function SegmentSlider({
           if (dragging.current) onChange(valueFromEvent(e.clientX));
         }}
         onPointerUp={(e) => {
+          if (!dragging.current) return; // só commita se o arrasto começou aqui
           dragging.current = false;
           onCommit(valueFromEvent(e.clientX));
         }}
@@ -104,25 +106,41 @@ function tarsQuip(humor: number, empathy: number): string {
   return '"Parâmetros aplicados. Pronto para operar."';
 }
 
+const PARAMS: { key: PersonalityKey; label: string; code: string; accent: 'amber' | 'ice' }[] = [
+  { key: 'humorLevel', label: 'Humor', code: 'HUM //', accent: 'amber' },
+  { key: 'empathyLevel', label: 'Empatia', code: 'EMP //', accent: 'ice' },
+  { key: 'cautionLevel', label: 'Cautela', code: 'CAU //', accent: 'amber' },
+  { key: 'objectivityLevel', label: 'Objetividade', code: 'OBJ //', accent: 'ice' },
+  { key: 'formalityLevel', label: 'Formalidade', code: 'FOR //', accent: 'amber' },
+  { key: 'proactivityLevel', label: 'Proatividade', code: 'PRO //', accent: 'ice' },
+];
+
+type Values = Record<PersonalityKey, number>;
+
+function readValues(settings: Settings | null): Values {
+  return Object.fromEntries(PARAMS.map((p) => [p.key, settings?.[p.key] ?? 50])) as Values;
+}
+
 export function PersonalityMatrix({
   settings,
   onUpdate,
 }: {
   settings: Settings | null;
-  onUpdate: (data: Partial<Pick<Settings, 'humorLevel' | 'empathyLevel'>>) => void;
+  onUpdate: (data: Partial<Record<PersonalityKey, number>>) => void;
 }) {
   // Estado local para resposta instantânea ao arrastar; commit envia à API.
-  const [humor, setHumor] = useState(settings?.humorLevel ?? 50);
-  const [empathy, setEmpathy] = useState(settings?.empathyLevel ?? 50);
+  const [values, setValues] = useState<Values>(() => readValues(settings));
 
   // Sincroniza com o backend quando os settings mudam (padrão oficial do React:
   // ajustar estado durante o render comparando com o valor anterior).
   const [prev, setPrev] = useState(settings);
   if (settings && settings !== prev) {
     setPrev(settings);
-    setHumor(settings.humorLevel);
-    setEmpathy(settings.empathyLevel);
+    setValues(readValues(settings));
   }
+
+  const setOne = (key: PersonalityKey, v: number) =>
+    setValues((cur) => ({ ...cur, [key]: v }));
 
   return (
     <section className="panel reveal" style={{ animationDelay: '0.05s' }}>
@@ -136,29 +154,24 @@ export function PersonalityMatrix({
         </span>
       </div>
 
-      <div className="flex flex-col gap-6">
-        <SegmentSlider
-          label="Humor"
-          code="HUM //"
-          value={humor}
-          accent="amber"
-          onChange={setHumor}
-          onCommit={(v) => onUpdate({ humorLevel: v })}
-        />
-        <SegmentSlider
-          label="Empatia"
-          code="EMP //"
-          value={empathy}
-          accent="ice"
-          onChange={setEmpathy}
-          onCommit={(v) => onUpdate({ empathyLevel: v })}
-        />
+      <div className="flex flex-col" style={{ gap: '1.1rem' }}>
+        {PARAMS.map((p) => (
+          <SegmentSlider
+            key={p.key}
+            label={p.label}
+            code={p.code}
+            value={values[p.key]}
+            accent={p.accent}
+            onChange={(v) => setOne(p.key, v)}
+            onCommit={(v) => onUpdate({ [p.key]: v })}
+          />
+        ))}
       </div>
 
       <p
         className="mono"
         style={{
-          marginTop: '1.25rem',
+          marginTop: '1.15rem',
           fontSize: '0.78rem',
           color: 'var(--color-muted)',
           lineHeight: 1.5,
@@ -166,7 +179,7 @@ export function PersonalityMatrix({
           paddingTop: '0.9rem',
         }}
       >
-        {tarsQuip(humor, empathy)}
+        {tarsQuip(values.humorLevel, values.empathyLevel)}
       </p>
     </section>
   );

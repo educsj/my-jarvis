@@ -27,8 +27,21 @@ export interface Settings {
   id: string;
   humorLevel: number;
   empathyLevel: number;
+  cautionLevel: number;
+  objectivityLevel: number;
+  formalityLevel: number;
+  proactivityLevel: number;
   llmModel: string;
 }
+
+/** Chaves numéricas de personalidade que podem ser ajustadas nos sliders. */
+export type PersonalityKey =
+  | 'humorLevel'
+  | 'empathyLevel'
+  | 'cautionLevel'
+  | 'objectivityLevel'
+  | 'formalityLevel'
+  | 'proactivityLevel';
 
 export interface Reminder {
   id: string;
@@ -73,7 +86,7 @@ export const api = {
   brainStatus: () => request<{ brainOnline: boolean }>('/chat/status'),
 
   getSettings: () => request<Settings>('/settings'),
-  updateSettings: (data: Partial<Pick<Settings, 'humorLevel' | 'empathyLevel' | 'llmModel'>>) =>
+  updateSettings: (data: Partial<Record<PersonalityKey, number> & { llmModel: string }>) =>
     request<Settings>('/settings', { method: 'PUT', body: JSON.stringify(data) }),
 
   listReminders: () => request<Reminder[]>('/reminders'),

@@ -3,9 +3,15 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
 import { ensureDefaultUser } from '../lib/ensureUser.js';
 
+const level = () => z.number().int().min(0).max(100).optional();
+
 const updateSettingsSchema = z.object({
-  humorLevel: z.number().int().min(0).max(100).optional(),
-  empathyLevel: z.number().int().min(0).max(100).optional(),
+  humorLevel: level(),
+  empathyLevel: level(),
+  cautionLevel: level(),
+  objectivityLevel: level(),
+  formalityLevel: level(),
+  proactivityLevel: level(),
   llmModel: z.string().min(1).optional(),
 });
 

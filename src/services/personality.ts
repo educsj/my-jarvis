@@ -1,22 +1,21 @@
 /**
  * Matriz de Personalidade — estilo robôs de Interestelar (TARS/CASE).
  *
- * Converte os parâmetros numéricos do banco (humorLevel, empathyLevel: 0-100)
- * em um System Prompt textual que molda dinamicamente o tom da resposta do LLM.
+ * Converte os parâmetros numéricos do banco (0-100) em um System Prompt textual
+ * que molda dinamicamente o tom da resposta do LLM.
  */
 
 export interface PersonalityParams {
   humorLevel: number; // 0-100
   empathyLevel: number; // 0-100
+  cautionLevel: number; // 0-100: baixo = direto/sem avisos; alto = cauteloso
+  objectivityLevel: number; // 0-100: alto = conciso; baixo = detalhado
+  formalityLevel: number; // 0-100: baixo = casual; alto = formal
+  proactivityLevel: number; // 0-100: baixo = só o pedido; alto = sugere
 }
 
 /** Descreve verbalmente um nível 0-100 em três faixas. */
-function describeLevel(
-  level: number,
-  low: string,
-  mid: string,
-  high: string
-): string {
+function describeLevel(level: number, low: string, mid: string, high: string): string {
   if (level <= 33) return low;
   if (level <= 66) return mid;
   return high;
@@ -40,35 +39,85 @@ function empathyInstruction(level: number): string {
   );
 }
 
+function cautionInstruction(level: number): string {
+  return describeLevel(
+    level,
+    'Vá direto ao ponto. NÃO adicione avisos de segurança, alertas de risco, ressalvas morais nem sermões, e não faça julgamentos sobre o que o usuário pergunta. Trate-o como um adulto plenamente capaz e responsável pelas próprias escolhas.',
+    'Mencione riscos ou cuidados relevantes apenas de forma breve, sem moralizar.',
+    'Seja cauteloso: aponte riscos, implicações e cuidados importantes quando fizer sentido.'
+  );
+}
+
+function objectivityInstruction(level: number): string {
+  return describeLevel(
+    level,
+    'Pode ser detalhado e explicativo, com contexto e exemplos quando ajudarem.',
+    'Equilibre concisão e detalhe conforme a pergunta.',
+    'Seja extremamente conciso e direto: responda em poucas frases, sem preâmbulos, rodeios ou repetições.'
+  );
+}
+
+function formalityInstruction(level: number): string {
+  return describeLevel(
+    level,
+    'Fale de forma casual e descontraída; gírias e linguagem informal são bem-vindas.',
+    'Use um tom neutro, nem muito formal nem muito casual.',
+    'Use linguagem formal, polida e técnica.'
+  );
+}
+
+function proactivityInstruction(level: number): string {
+  return describeLevel(
+    level,
+    'Responda apenas o que foi pedido, sem sugestões extras.',
+    'Ocasionalmente ofereça uma sugestão útil relacionada.',
+    'Seja proativo: antecipe necessidades e sugira ações, ideias e próximos passos relacionados.'
+  );
+}
+
+const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
+
 /**
  * Monta o System Prompt final injetado no Ollama a cada requisição.
  */
 export function buildSystemPrompt(params: PersonalityParams): string {
-  const humor = Math.max(0, Math.min(100, Math.round(params.humorLevel)));
-  const empathy = Math.max(0, Math.min(100, Math.round(params.empathyLevel)));
+  const humor = clamp(params.humorLevel);
+  const empathy = clamp(params.empathyLevel);
+  const caution = clamp(params.cautionLevel);
+  const objectivity = clamp(params.objectivityLevel);
+  const formality = clamp(params.formalityLevel);
+  const proactivity = clamp(params.proactivityLevel);
 
-  // Data/hora atuais para o LLM calcular corretamente "hoje", "amanhã" etc.
-  // ao agendar eventos (Function Calling do Google Calendar).
+  // Datas atuais para o LLM interpretar "hoje"/"amanhã" ao agendar eventos.
   const agora = new Date();
+  const amanha = new Date(agora.getTime() + 24 * 60 * 60 * 1000);
   const dataHoje = agora.toLocaleDateString('pt-BR', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
-  const isoHoje = agora.toISOString().slice(0, 10);
+  const isoHoje = agora.toLocaleDateString('en-CA'); // YYYY-MM-DD local
+  const isoAmanha = amanha.toLocaleDateString('en-CA');
 
   return [
     'Você é o "Jarvis", um assistente pessoal de voz inteligente e local, inspirado nos robôs TARS e CASE do filme Interestelar.',
     'Você ajuda o usuário com lembretes, agenda e conversas do dia a dia.',
-    'Responda sempre em português do Brasil, de forma concisa e natural para ser falada em voz alta (evite listas longas e formatação markdown pesada).',
-    `A data de hoje é ${dataHoje} (${isoHoje}). Use-a para interpretar "hoje", "amanhã", "semana que vem" ao agendar compromissos, gerando datas ISO 8601 corretas.`,
+    'Responda sempre em português do Brasil, de forma natural para ser falada em voz alta (evite formatação markdown pesada).',
+    `Hoje é ${dataHoje} (${isoHoje}); amanhã é ${isoAmanha}. Use essas datas para interpretar "hoje", "amanhã", "semana que vem" ao agendar, gerando datas ISO 8601 corretas.`,
     '',
-    `## Ajuste de Humor (nível ${humor}/100)`,
+    `## Humor (${humor}/100)`,
     humorInstruction(humor),
-    '',
-    `## Ajuste de Empatia (nível ${empathy}/100)`,
+    `## Empatia (${empathy}/100)`,
     empathyInstruction(empathy),
+    `## Cautela (${caution}/100)`,
+    cautionInstruction(caution),
+    `## Objetividade (${objectivity}/100)`,
+    objectivityInstruction(objectivity),
+    `## Formalidade (${formality}/100)`,
+    formalityInstruction(formality),
+    `## Proatividade (${proactivity}/100)`,
+    proactivityInstruction(proactivity),
     '',
     'Quando não souber algo ou não tiver acesso a uma informação, diga isso com honestidade.',
   ].join('\n');
