@@ -191,7 +191,7 @@ Sem isto, a voz funciona em modo simulado. Para ativar STT/TTS de verdade (Windo
 
 2. **Whisper.cpp** (STT):
    - Baixe o binário Windows em https://github.com/ggml-org/whisper.cpp/releases (procure `whisper-cli.exe` / `main.exe`).
-   - Baixe um modelo (recomendado `ggml-small.bin`, PT bom) em https://huggingface.co/ggerganov/whisper.cpp/tree/main.
+   - Baixe um modelo em https://huggingface.co/ggerganov/whisper.cpp/tree/main. Recomendado `ggml-medium.bin` (~1.5GB, bem preciso em PT); `ggml-small.bin` (~466MB) é a alternativa mais leve/rápida.
    - Coloque ambos em, ex.: `C:\jarvis-voice\whisper\`.
 
 3. **Piper** (TTS):
