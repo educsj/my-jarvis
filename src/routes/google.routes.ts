@@ -7,7 +7,12 @@ import {
   GoogleNotConfiguredError,
 } from '../services/google/oauth.js';
 import { hasTokens, clearTokens } from '../services/google/tokenStore.js';
-import { listEventsForDay, createEvent, parseLocalDate } from '../services/google/calendar.js';
+import {
+  listEventsForDay,
+  createEvent,
+  deleteEvent,
+  parseLocalDate,
+} from '../services/google/calendar.js';
 
 const callbackSchema = z.object({
   code: z.string().optional(),
@@ -81,6 +86,17 @@ export async function googleRoutes(app: FastifyInstance) {
     try {
       const events = await listEventsForDay(date ? parseLocalDate(date) : new Date());
       return { events };
+    } catch (err) {
+      return reply.status(409).send({ error: (err as Error).message });
+    }
+  });
+
+  // Remove um evento pelo id
+  app.delete('/calendar/events/:id', async (request, reply) => {
+    const { id } = z.object({ id: z.string().min(1) }).parse(request.params);
+    try {
+      await deleteEvent(id);
+      return reply.status(204).send();
     } catch (err) {
       return reply.status(409).send({ error: (err as Error).message });
     }

@@ -105,3 +105,9 @@ export async function createEvent(input: CreateEventInput): Promise<CalendarEven
     location: e.location ?? undefined,
   };
 }
+
+/** Remove um evento do calendário primário pelo id. */
+export async function deleteEvent(eventId: string): Promise<void> {
+  const calendar = await getCalendar();
+  await calendar.events.delete({ calendarId: 'primary', eventId });
+}
