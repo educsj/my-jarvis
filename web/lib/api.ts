@@ -47,6 +47,13 @@ export interface ChatReply {
   toolsUsed: string[];
 }
 
+export interface VoiceReply extends ChatReply {
+  transcription: string;
+  transcriptionReal: boolean;
+  audioPath: string;
+  audioReal: boolean;
+}
+
 export interface CalendarEvent {
   id: string;
   summary: string;
@@ -78,6 +85,19 @@ export const api = {
 
   chat: (message: string) =>
     request<ChatReply>('/chat', { method: 'POST', body: JSON.stringify({ message }) }),
+
+  // Envia o áudio gravado para a pipeline de voz (STT → LLM → TTS).
+  // Sem header Content-Type: o browser define o boundary do multipart.
+  chatVoice: async (blob: Blob): Promise<VoiceReply> => {
+    const form = new FormData();
+    form.append('audio', blob, 'speech.webm');
+    const res = await fetch(`${BASE_URL}/chat/voice`, { method: 'POST', body: form });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new ApiError(res.status, body?.error ?? `Erro ${res.status}`);
+    }
+    return res.json() as Promise<VoiceReply>;
+  },
 
   googleStatus: () => request<GoogleStatus>('/auth/google/status'),
   calendarToday: () => request<{ events: CalendarEvent[] }>('/calendar/today'),

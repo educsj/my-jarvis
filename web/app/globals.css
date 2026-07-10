@@ -80,6 +80,15 @@ body::before {
 .reveal {
   animation: fadeUp 0.5s ease both;
 }
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
 
 /* ---- Tipografia utilitária ---- */
 .mono {

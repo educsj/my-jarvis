@@ -29,7 +29,9 @@ Git: 3 commits em `main` (último `af44ed8`). Backend na raiz, `web/` e `mobile/
 
 Lista de afazeres do painel web (o usuário pediu, timing livre):
 - [x] #1 Scroll do chat (log rola internamente com `maxHeight:52vh`, não estica mais a página). FEITO.
-- [ ] #2 **Adicionar entrada de áudio ao chat web** — botão de microfone (MediaRecorder) → `POST /chat/voice`. STT/TTS reais já funcionam no backend. Espelhar o padrão do mobile (`mobile/App.tsx`). Precisa: método `chatVoice(blob)` em `web/lib/api.ts` + UI de gravação no `web/components/ConversationPanel.tsx`.
+- [x] #2 Entrada de áudio no chat web — botão 🎙 (MediaRecorder) → `POST /chat/voice`, validado ponta a ponta com microfone falso do Chrome. FEITO.
+
+Nenhum afazer pendente no momento. Ações do usuário para 100%: configurar Google Calendar no `.env`, gerar o `.apk` (`eas build`), e (opcional) túnel fixo.
 
 ## ⚙️ Configuração de modelo (já aplicada)
 - O chat usa `settings.llmModel` do **banco** (fonte da verdade, coerente com o chip da UI), com fallback a `OLLAMA_MODEL` do `.env`.

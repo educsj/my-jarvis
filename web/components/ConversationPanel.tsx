@@ -31,7 +31,10 @@ export function ConversationPanel() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
+  const [recording, setRecording] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' });
@@ -60,6 +63,67 @@ export function ConversationPanel() {
       ]);
     } finally {
       setThinking(false);
+    }
+  }
+
+  // ---- Entrada de voz (grava no navegador → POST /chat/voice) ----
+  async function sendVoice(blob: Blob) {
+    setThinking(true);
+    try {
+      const res = await api.chatVoice(blob);
+      setMessages((m) => [
+        ...m,
+        { role: 'user', content: res.transcription || '(áudio)' },
+        { role: 'assistant', content: res.reply, offline: !res.ok, tools: res.toolsUsed },
+      ]);
+    } catch (err) {
+      setMessages((m) => [
+        ...m,
+        { role: 'assistant', content: `Falha ao enviar o áudio (${(err as Error).message}).`, offline: true },
+      ]);
+    } finally {
+      setThinking(false);
+    }
+  }
+
+  async function toggleRecording() {
+    if (recording) {
+      recorderRef.current?.stop();
+      setRecording(false);
+      return;
+    }
+    if (thinking) return;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setMessages((m) => [
+        ...m,
+        { role: 'assistant', content: 'Seu navegador não suporta gravação de áudio.', offline: true },
+      ]);
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const rec = new MediaRecorder(stream);
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      rec.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'audio/webm' });
+        void sendVoice(blob);
+      };
+      recorderRef.current = rec;
+      rec.start();
+      setRecording(true);
+    } catch {
+      setMessages((m) => [
+        ...m,
+        {
+          role: 'assistant',
+          content: 'Não consegui acessar o microfone. Verifique a permissão do navegador.',
+          offline: true,
+        },
+      ]);
     }
   }
 
@@ -153,14 +217,43 @@ export function ConversationPanel() {
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginTop: '1rem' }}>
+        <button
+          type="button"
+          onClick={toggleRecording}
+          disabled={thinking}
+          aria-label={recording ? 'Parar gravação' : 'Gravar áudio'}
+          title={recording ? 'Parar e enviar' : 'Falar com o Jarvis'}
+          className="btn"
+          style={{
+            padding: '0.5rem 0.7rem',
+            borderColor: recording ? 'var(--color-danger)' : undefined,
+            background: recording ? 'rgba(224,106,91,0.15)' : undefined,
+          }}
+        >
+          {recording ? (
+            <span
+              style={{
+                display: 'inline-block',
+                width: 12,
+                height: 12,
+                borderRadius: 3,
+                background: 'var(--color-danger)',
+                animation: 'pulse 1s ease-in-out infinite',
+              }}
+            />
+          ) : (
+            '🎙'
+          )}
+        </button>
         <input
           className="field mono"
-          placeholder="> mensagem para o jarvis"
+          placeholder={recording ? '● gravando… toque no quadrado para enviar' : '> mensagem para o jarvis'}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && send()}
+          disabled={recording}
         />
-        <button className="btn btn-amber" onClick={send} disabled={thinking || !input.trim()}>
+        <button className="btn btn-amber" onClick={send} disabled={thinking || recording || !input.trim()}>
           Enviar
         </button>
       </div>
