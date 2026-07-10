@@ -31,6 +31,17 @@ async function getCalendar() {
   return google.calendar({ version: 'v3', auth });
 }
 
+/**
+ * Converte "YYYY-MM-DD" em uma data LOCAL à meia-noite. Evita o bug de
+ * `new Date("YYYY-MM-DD")` ser interpretado como UTC (o que desloca o dia
+ * em fusos negativos). Outras strings caem no parser padrão.
+ */
+export function parseLocalDate(s: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.trim());
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return new Date(s);
+}
+
 /** Lista os eventos de um dia (padrão: hoje). */
 export async function listEventsForDay(date = new Date()): Promise<CalendarEvent[]> {
   const calendar = await getCalendar();

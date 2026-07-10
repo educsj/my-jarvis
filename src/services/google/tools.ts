@@ -1,4 +1,4 @@
-import { listEventsForDay, createEvent } from './calendar.js';
+import { listEventsForDay, createEvent, parseLocalDate } from './calendar.js';
 
 /**
  * Definições de ferramentas (Function Calling) expostas ao LLM, no formato
@@ -62,7 +62,7 @@ export async function runCalendarTool(name: string, args: ToolArgs): Promise<str
   try {
     switch (name) {
       case 'get_today_events': {
-        const date = typeof args.date === 'string' ? new Date(args.date) : new Date();
+        const date = typeof args.date === 'string' ? parseLocalDate(args.date) : new Date();
         const events = await listEventsForDay(date);
         if (events.length === 0) return 'Nenhum evento encontrado para a data.';
         return JSON.stringify(events);

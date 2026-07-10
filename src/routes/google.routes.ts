@@ -7,7 +7,7 @@ import {
   GoogleNotConfiguredError,
 } from '../services/google/oauth.js';
 import { hasTokens, clearTokens } from '../services/google/tokenStore.js';
-import { listEventsForDay, createEvent } from '../services/google/calendar.js';
+import { listEventsForDay, createEvent, parseLocalDate } from '../services/google/calendar.js';
 
 const callbackSchema = z.object({
   code: z.string().optional(),
@@ -79,7 +79,7 @@ export async function googleRoutes(app: FastifyInstance) {
   app.get('/calendar/today', async (request, reply) => {
     const { date } = z.object({ date: z.string().optional() }).parse(request.query);
     try {
-      const events = await listEventsForDay(date ? new Date(date) : new Date());
+      const events = await listEventsForDay(date ? parseLocalDate(date) : new Date());
       return { events };
     } catch (err) {
       return reply.status(409).send({ error: (err as Error).message });
