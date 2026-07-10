@@ -25,7 +25,7 @@ export function buildApp() {
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   });
   app.register(sensible);
-  app.register(multipart, { limits: { fileSize: 25 * 1024 * 1024 } }); // até 25MB de áudio
+  app.register(multipart, { limits: { fileSize: 50 * 1024 * 1024 } }); // áudio e documentos (até 50MB)
 
   // Serve os áudios gerados pelo TTS (Piper) em /audio/<arquivo>.wav
   app.register(fastifyStatic, {

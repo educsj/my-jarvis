@@ -127,6 +127,16 @@ export const api = {
     request<{ files: number; chunks: number; errors: string[] }>('/knowledge/reindex', {
       method: 'POST',
     }),
+  uploadKnowledge: async (files: File[]): Promise<{ saved: string[]; rejected: string[] }> => {
+    const form = new FormData();
+    for (const f of files) form.append('files', f, f.name);
+    const res = await fetch(`${BASE_URL}/knowledge/upload`, { method: 'POST', body: form });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new ApiError(res.status, body?.error ?? `Erro ${res.status}`);
+    }
+    return res.json() as Promise<{ saved: string[]; rejected: string[] }>;
+  },
 
   googleStatus: () => request<GoogleStatus>('/auth/google/status'),
   calendarToday: () => request<{ events: CalendarEvent[] }>('/calendar/today'),

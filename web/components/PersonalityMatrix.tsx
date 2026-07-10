@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Settings, PersonalityKey } from '@/lib/api';
 
 const SEGMENTS = 20;
@@ -142,45 +142,75 @@ export function PersonalityMatrix({
   const setOne = (key: PersonalityKey, v: number) =>
     setValues((cur) => ({ ...cur, [key]: v }));
 
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    // Sincroniza com o localStorage no cliente (evita hydration mismatch do SSR).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCollapsed(localStorage.getItem('pm-collapsed') === '1');
+  }, []);
+  function toggleCollapsed() {
+    setCollapsed((c) => {
+      localStorage.setItem('pm-collapsed', c ? '0' : '1');
+      return !c;
+    });
+  }
+
   return (
     <section className="panel reveal" style={{ animationDelay: '0.05s' }}>
-      <div className="panel-head">
+      <div className="panel-head" style={{ marginBottom: collapsed ? 0 : undefined }}>
         <div>
           <div className="eyebrow">Matriz de Personalidade</div>
           <div className="panel-title">Configuração do núcleo</div>
         </div>
-        <span className="chip">
-          <span className="dot warn" /> TARS-MODE
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="chip">
+            <span className="dot warn" /> TARS-MODE
+          </span>
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            aria-label={collapsed ? 'Expandir' : 'Recolher'}
+            title={collapsed ? 'Expandir' : 'Recolher'}
+            aria-expanded={!collapsed}
+            className="btn"
+            style={{ padding: '0.3rem 0.5rem', fontSize: '0.85rem', lineHeight: 1 }}
+          >
+            {collapsed ? '▸' : '▾'}
+          </button>
+        </div>
       </div>
 
-      <div className="flex flex-col" style={{ gap: '1.1rem' }}>
-        {PARAMS.map((p) => (
-          <SegmentSlider
-            key={p.key}
-            label={p.label}
-            code={p.code}
-            value={values[p.key]}
-            accent={p.accent}
-            onChange={(v) => setOne(p.key, v)}
-            onCommit={(v) => onUpdate({ [p.key]: v })}
-          />
-        ))}
-      </div>
+      {!collapsed && (
+        <>
+          <div className="flex flex-col" style={{ gap: '1.1rem' }}>
+            {PARAMS.map((p) => (
+              <SegmentSlider
+                key={p.key}
+                label={p.label}
+                code={p.code}
+                value={values[p.key]}
+                accent={p.accent}
+                onChange={(v) => setOne(p.key, v)}
+                onCommit={(v) => onUpdate({ [p.key]: v })}
+              />
+            ))}
+          </div>
 
-      <p
-        className="mono"
-        style={{
-          marginTop: '1.15rem',
-          fontSize: '0.78rem',
-          color: 'var(--color-muted)',
-          lineHeight: 1.5,
-          borderTop: '1px solid var(--line)',
-          paddingTop: '0.9rem',
-        }}
-      >
-        {tarsQuip(values.humorLevel, values.empathyLevel)}
-      </p>
+          <p
+            className="mono"
+            style={{
+              marginTop: '1.15rem',
+              fontSize: '0.78rem',
+              color: 'var(--color-muted)',
+              lineHeight: 1.5,
+              borderTop: '1px solid var(--line)',
+              paddingTop: '0.9rem',
+            }}
+          >
+            {tarsQuip(values.humorLevel, values.empathyLevel)}
+          </p>
+        </>
+      )}
     </section>
   );
 }
