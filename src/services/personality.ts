@@ -91,17 +91,25 @@ export function buildSystemPrompt(params: PersonalityParams): string {
   // Tabela de referência dos próximos dias (dia da semana → data ISO local).
   // Dá ao LLM um "de-para" para não errar ao calcular "sábado", "sexta" etc.
   const agora = new Date();
+  const hojeExtenso = agora.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
   const diasRef: string[] = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 21; i++) {
     const d = new Date(agora.getTime() + i * 24 * 60 * 60 * 1000);
     const wd = d.toLocaleDateString('pt-BR', { weekday: 'long' });
     const iso = d.toLocaleDateString('en-CA'); // YYYY-MM-DD local
+    const dia = d.getDate();
     const rotulo = i === 0 ? ' (hoje)' : i === 1 ? ' (amanhã)' : '';
-    diasRef.push(`- ${wd}, ${iso}${rotulo}`);
+    diasRef.push(`- ${wd}, dia ${dia} → ${iso}${rotulo}`);
   }
-  const dataReferencia = ['Referência de datas (use EXATAMENTE estas — não calcule de cabeça):', ...diasRef].join(
-    '\n'
-  );
+  const dataReferencia = [
+    `Hoje é ${hojeExtenso}. Tabela de datas — encontre nela a data que o usuário mencionar (por dia da semana OU por "dia N"):`,
+    ...diasRef,
+  ].join('\n');
 
   return [
     'Você é o "Jarvis", um assistente pessoal de voz inteligente e local, inspirado nos robôs TARS e CASE do filme Interestelar.',
@@ -109,7 +117,7 @@ export function buildSystemPrompt(params: PersonalityParams): string {
     'Regra sobre ferramentas: use as ferramentas de calendário APENAS quando o usuário pedir explicitamente para ver ou marcar um compromisso. Para qualquer outra pergunta, responda você mesmo diretamente — nunca desvie uma pergunta comum para o calendário nem diga que "não tem informações".',
     'Responda SEMPRE no mesmo idioma em que o usuário escreveu. Se a mensagem estiver em português, responda inteiramente em português — NUNCA misture palavras ou frases em inglês no meio. Fale de forma natural para ser dita em voz alta (evite formatação markdown pesada).',
     dataReferencia,
-    'Ao agendar, gere sempre datas ISO 8601 (YYYY-MM-DDTHH:mm:ss) coerentes com a tabela acima.',
+    'Ao agendar: localize a data EXATA na tabela acima (conferindo dia da semana e número do dia). Se o dia estiver além da tabela, conte a partir de hoje. Gere sempre a data em ISO 8601 (YYYY-MM-DDTHH:mm:ss). "Meio-dia" = 12:00. Se o pedido do usuário chegou truncado ou confuso (ex.: transcrição de voz), peça para ele confirmar a data em vez de adivinhar.',
     '',
     `## Humor (${humor}/100)`,
     humorInstruction(humor),
