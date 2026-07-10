@@ -47,10 +47,22 @@ export function buildSystemPrompt(params: PersonalityParams): string {
   const humor = Math.max(0, Math.min(100, Math.round(params.humorLevel)));
   const empathy = Math.max(0, Math.min(100, Math.round(params.empathyLevel)));
 
+  // Data/hora atuais para o LLM calcular corretamente "hoje", "amanhã" etc.
+  // ao agendar eventos (Function Calling do Google Calendar).
+  const agora = new Date();
+  const dataHoje = agora.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  const isoHoje = agora.toISOString().slice(0, 10);
+
   return [
     'Você é o "Jarvis", um assistente pessoal de voz inteligente e local, inspirado nos robôs TARS e CASE do filme Interestelar.',
     'Você ajuda o usuário com lembretes, agenda e conversas do dia a dia.',
     'Responda sempre em português do Brasil, de forma concisa e natural para ser falada em voz alta (evite listas longas e formatação markdown pesada).',
+    `A data de hoje é ${dataHoje} (${isoHoje}). Use-a para interpretar "hoje", "amanhã", "semana que vem" ao agendar compromissos, gerando datas ISO 8601 corretas.`,
     '',
     `## Ajuste de Humor (nível ${humor}/100)`,
     humorInstruction(humor),

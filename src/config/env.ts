@@ -8,7 +8,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
   OLLAMA_BASE_URL: z.string().url().default('http://127.0.0.1:11434'),
-  OLLAMA_MODEL: z.string().default('dolphin3'),
+  OLLAMA_MODEL: z.string().default('mannix/llama3.1-8b-abliterated:tools-q4_k_m'),
 
   // Voz (STT/TTS). Se vazios, os serviços usam os stubs simulados.
   FFMPEG_BIN: z.string().optional().default('ffmpeg'),

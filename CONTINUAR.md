@@ -17,25 +17,19 @@ Documento de retomada (handoff). Atualizado em **2026-07-09**.
 
 Git: 3 commits em `main` (último `af44ed8`). Backend na raiz, `web/` e `mobile/` são subprojetos.
 
+## ✅ MODELO LLM — DECIDIDO
+
+**`mannix/llama3.1-8b-abliterated:tools-q4_k_m`** — baixado e em uso (DB `settings.llmModel` + `.env`).
+- Testado: personalidade/atitude ✅, sem censura (abliterated) ✅, **function calling ✅** (emitiu `tool_call` para `create_calendar_event`).
+- Correção aplicada: a data de hoje é injetada no system prompt (`personality.ts`) para o LLM gerar datas ISO corretas ao agendar (antes chutava 2023 → agora 2026 certo).
+- Alternativas se quiser trocar: `:tools-q6_k` (mais fiel), `huihui_ai/dolphin3-abliterated`. Trocar = `PUT /settings {"llmModel":"..."}` (+ `ollama pull`).
+- `dolphin3` foi descartado (não suporta tools e ainda tinha censura).
+
 ## 🔄 TAREFA EM ANDAMENTO (retomar aqui)
 
-**Escolha do modelo LLM.** Histórico:
-- `dolphin3` testado: personalidade OK, mas **NÃO suporta tools** ("does not support tools") e o usuário achou que **ainda tem censura**. Descartado para o objetivo.
-- Objetivo do usuário: **sem censura TOTAL**. Decisão: usar modelo **abliterated**.
-- **Baixando agora:** `mannix/llama3.1-8b-abliterated:tools-q4_k_m` (abliterated = remove recusa nos pesos; a tag `tools-` mantém function calling). Log: `scratchpad/pull2.log`.
-- **Checar se terminou:** `curl -s http://127.0.0.1:11434/api/tags | grep abliterated`.
-
-### Assim que o download terminar:
-1. Apontar o backend para ele:
-   ```bash
-   curl -X PUT http://localhost:3333/settings -H "Content-Type: application/json" \
-     -d '{"llmModel":"mannix/llama3.1-8b-abliterated:tools-q4_k_m"}'
-   ```
-2. **Teste personalidade + sem censura:** `POST /chat` com uma pergunta que o dolphin recusaria — confirmar que responde sem freios.
-3. **Teste tools:** `POST http://localhost:11434/api/chat` com `model` = a tag acima, um pedido de agendamento e o array `tools` (ver exemplo no histórico do chat / código em src/services/google/tools.ts). Se vier `tool_calls` → agenda por voz funciona também. 🎯
-4. Se decepcionar, alternativas: `mannix/llama3.1-8b-abliterated:tools-q6_k` (mais fiel) ou `huihui_ai/dolphin3-abliterated`.
-
-Fontes sobre abliterated: ollama.com/mannix/llama3.1-8b-abliterated , locallyuncensored.com/blog/abliterated-models-guide.html
+Lista de afazeres do painel web (o usuário pediu, timing livre):
+- [x] #1 Scroll do chat (log rola internamente com `maxHeight:52vh`, não estica mais a página). FEITO.
+- [ ] #2 **Adicionar entrada de áudio ao chat web** — botão de microfone (MediaRecorder) → `POST /chat/voice`. STT/TTS reais já funcionam no backend. Espelhar o padrão do mobile (`mobile/App.tsx`). Precisa: método `chatVoice(blob)` em `web/lib/api.ts` + UI de gravação no `web/components/ConversationPanel.tsx`.
 
 ## ⚙️ Configuração de modelo (já aplicada)
 - O chat usa `settings.llmModel` do **banco** (fonte da verdade, coerente com o chip da UI), com fallback a `OLLAMA_MODEL` do `.env`.
