@@ -2,6 +2,7 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { env } from '../../config/env.js';
+import { detectLang } from '../lang.js';
 
 /**
  * Gerenciamento das vozes do Piper: lista os modelos .onnx disponíveis na pasta
@@ -61,4 +62,21 @@ export async function getSelectedVoicePath(): Promise<string> {
 export async function setSelectedVoice(voicePath: string): Promise<void> {
   if (!existsSync(voicePath)) throw new Error('Arquivo de voz não encontrado.');
   await writeFile(CONFIG_FILE, JSON.stringify({ path: voicePath }, null, 2), 'utf-8');
+}
+
+/**
+ * Escolhe a voz que combina com o IDIOMA do texto a ser falado. Se a voz
+ * selecionada já for do idioma certo, mantém-na; senão, usa a primeira voz
+ * disponível daquele idioma. Evita ler português com voz inglesa (e vice-versa).
+ */
+export async function pickVoiceForText(text: string): Promise<string> {
+  const lang = detectLang(text); // 'pt' | 'en'
+  const prefix = lang === 'en' ? 'en' : 'pt';
+  const [voices, selected] = await Promise.all([listVoices(), getSelectedVoicePath()]);
+
+  const sel = voices.find((v) => v.path === selected);
+  if (sel && sel.lang.toLowerCase().startsWith(prefix)) return selected;
+
+  const match = voices.find((v) => v.lang.toLowerCase().startsWith(prefix));
+  return match?.path ?? selected;
 }

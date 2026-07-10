@@ -5,7 +5,8 @@ import path from 'node:path';
 import { env } from '../config/env.js';
 import { run, binAvailable } from './voice/proc.js';
 import { toSpeakableText } from './voice/speakable.js';
-import { getSelectedVoicePath } from './voice/voices.js';
+import { pickVoiceForText } from './voice/voices.js';
+import { detectLang } from './lang.js';
 
 /**
  * TTS (Text-to-Speech) — Piper.
@@ -32,8 +33,8 @@ export function isTtsConfigured(): boolean {
 }
 
 export async function synthesizeSpeech(rawText: string): Promise<SynthesisResult> {
-  // Normaliza horários ("13:00" → "treze horas") para a fala soar natural.
-  const text = toSpeakableText(rawText);
+  // Normaliza horários ("13:00" → "treze horas") só em português.
+  const text = detectLang(rawText) === 'pt' ? toSpeakableText(rawText) : rawText;
   await mkdir(TEMP_AUDIO_DIR, { recursive: true });
 
   if (!isTtsConfigured()) {
@@ -46,8 +47,8 @@ export async function synthesizeSpeech(rawText: string): Promise<SynthesisResult
   const fullPath = path.join(TEMP_AUDIO_DIR, filename);
 
   try {
-    // Voz ativa (selecionável no painel); cai para o padrão do .env.
-    const voice = await getSelectedVoicePath();
+    // Voz do idioma do texto (evita ler PT com voz EN e vice-versa).
+    const voice = await pickVoiceForText(rawText);
     // Piper lê o texto pelo stdin e grava o WAV no caminho de --output_file.
     const result = await run(env.PIPER_BIN, ['-m', voice, '-f', fullPath], text);
     if (result.code !== 0 || !existsSync(fullPath)) {

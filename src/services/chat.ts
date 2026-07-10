@@ -6,6 +6,7 @@ import { isGoogleConfigured } from './google/oauth.js';
 import { calendarTools, runCalendarTool } from './google/tools.js';
 import { search as searchKnowledge, type SearchHit } from './knowledge/store.js';
 import { audit } from './audit.js';
+import { detectLang } from './lang.js';
 
 /** Monta o bloco de contexto com os trechos recuperados da base de conhecimento. */
 function buildKnowledgeContext(hits: SearchHit[]): string {
@@ -80,10 +81,17 @@ export async function handleUserMessage(
   // RAG: busca trechos relevantes na base de conhecimento (silencioso se falhar/vazio).
   const kbHits = await searchKnowledge(userText).catch(() => [] as SearchHit[]);
 
+  // Ordem de idioma logo antes da mensagem (recência vence o viés do histórico).
+  const langDirective =
+    detectLang(userText) === 'en'
+      ? 'The user is writing in English. Reply ENTIRELY in English, regardless of the language of previous messages.'
+      : 'O usuário está escrevendo em português. Responda INTEIRAMENTE em português.';
+
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
     ...(kbHits.length ? [{ role: 'system' as const, content: buildKnowledgeContext(kbHits) }] : []),
     ...history,
+    { role: 'system', content: langDirective },
     { role: 'user', content: userText },
   ];
 
