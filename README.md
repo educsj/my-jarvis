@@ -25,6 +25,9 @@ third-party cloud unless you explicitly enable Google Calendar.
 - **🧠 Uncensored, steerable brain** — runs any Ollama model; ships configured for
   an abliterated Llama 3.1 8B that follows the system prompt closely. It knows the
   current date/time and honestly admits it has no internet/real-time data.
+- **⌨️ Coding mode (auto-routing)** — programming questions are automatically
+  routed to a code-specialized model (`qwen2.5-coder`), while everything else
+  keeps the uncensored personality model.
 - **📅 Google Calendar (function calling)** — "schedule lunch next Saturday at
   noon" actually creates the event, with reliable date handling (weekdays,
   "day N", named months).

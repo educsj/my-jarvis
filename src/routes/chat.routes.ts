@@ -102,6 +102,8 @@ export async function chatRoutes(app: FastifyInstance) {
       model: result.model,
       ok: result.ok,
       personality: result.personality,
+      toolsUsed: result.toolsUsed,
+      coder: result.coder,
       audioPath: speech.audioPath,
       audioReal: speech.real,
       audioUrl: audioUrl(speech.audioPath, speech.real),

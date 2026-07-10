@@ -9,6 +9,8 @@ const envSchema = z.object({
 
   OLLAMA_BASE_URL: z.string().url().default('http://127.0.0.1:11434'),
   OLLAMA_MODEL: z.string().default('mannix/llama3.1-8b-abliterated:tools-q4_k_m'),
+  // Modelo especializado em programação (usado automaticamente em perguntas de código).
+  CODER_MODEL: z.string().default('qwen2.5-coder:7b'),
 
   // Base de conhecimento (RAG). Pasta com documentos e modelo de embeddings.
   KNOWLEDGE_DIR: z.string().default('./knowledge'),

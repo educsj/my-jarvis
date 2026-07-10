@@ -33,8 +33,10 @@ export function isTtsConfigured(): boolean {
 }
 
 export async function synthesizeSpeech(rawText: string): Promise<SynthesisResult> {
+  // Remove blocos de código da fala (não faz sentido ler código caractere a caractere).
+  const cleaned = rawText.replace(/```[\s\S]*?```/g, '. (bloco de código na tela) .').replace(/`([^`]+)`/g, '$1');
   // Normaliza horários ("13:00" → "treze horas") só em português.
-  const text = detectLang(rawText) === 'pt' ? toSpeakableText(rawText) : rawText;
+  const text = detectLang(cleaned) === 'pt' ? toSpeakableText(cleaned) : cleaned;
   await mkdir(TEMP_AUDIO_DIR, { recursive: true });
 
   if (!isTtsConfigured()) {

@@ -7,6 +7,8 @@ import { calendarTools, runCalendarTool } from './google/tools.js';
 import { search as searchKnowledge, type SearchHit } from './knowledge/store.js';
 import { audit } from './audit.js';
 import { detectLang } from './lang.js';
+import { isCodingRequest, coderSystemPrompt } from './coding.js';
+import { env } from '../config/env.js';
 
 /** Monta o bloco de contexto com os trechos recuperados da base de conhecimento. */
 function buildKnowledgeContext(hits: SearchHit[]): string {
@@ -30,6 +32,8 @@ export interface AssistantReply {
   toolsUsed: string[];
   /** Fontes da base de conhecimento usadas (RAG). */
   kbSources: string[];
+  /** true quando a resposta veio do modelo especializado em programação. */
+  coder: boolean;
 }
 
 export interface ChatOptions {
@@ -54,14 +58,18 @@ export async function handleUserMessage(
   const user = await ensureDefaultUser();
   const settings = user.settings!;
 
-  const systemPrompt = buildSystemPrompt({
-    humorLevel: settings.humorLevel,
-    empathyLevel: settings.empathyLevel,
-    cautionLevel: settings.cautionLevel,
-    objectivityLevel: settings.objectivityLevel,
-    formalityLevel: settings.formalityLevel,
-    proactivityLevel: settings.proactivityLevel,
-  });
+  // Perguntas de programação usam o modelo coder + prompt técnico (sem personalidade).
+  const coding = isCodingRequest(userText);
+  const systemPrompt = coding
+    ? coderSystemPrompt()
+    : buildSystemPrompt({
+        humorLevel: settings.humorLevel,
+        empathyLevel: settings.empathyLevel,
+        cautionLevel: settings.cautionLevel,
+        objectivityLevel: settings.objectivityLevel,
+        formalityLevel: settings.formalityLevel,
+        proactivityLevel: settings.proactivityLevel,
+      });
 
   // Contexto: usa o enviado pelo cliente (modo privado) ou o histórico do banco.
   let history: ChatMessage[];
@@ -103,12 +111,11 @@ export async function handleUserMessage(
     /\bagend|\bmarc[ae]r?\b|\bmarque\b|compromisso|reuni[aã]o|\bevento|calend[aá]ri|minha agenda|meus? compromissos?/i.test(
       userText
     );
-  const tools = isGoogleConfigured() && wantsCalendar ? calendarTools : undefined;
+  const tools = !coding && isGoogleConfigured() && wantsCalendar ? calendarTools : undefined;
   const toolsUsed: string[] = [];
 
-  // Modelo vem do banco (fonte da verdade, editável e coerente com a UI);
-  // cai para o padrão do .env se estiver vazio.
-  const model = settings.llmModel || undefined;
+  // Modo coder → modelo especializado; senão, o modelo do banco (padrão do .env se vazio).
+  const model = coding ? env.CODER_MODEL : settings.llmModel || undefined;
 
   let result = await ollamaChat(messages, { tools, model });
 
@@ -154,6 +161,7 @@ export async function handleUserMessage(
     toolsUsed,
     kbSources,
     saved: willSave,
+    coder: coding,
   });
 
   return {
@@ -163,5 +171,6 @@ export async function handleUserMessage(
     personality: { humorLevel: settings.humorLevel, empathyLevel: settings.empathyLevel },
     toolsUsed,
     kbSources,
+    coder: coding,
   };
 }

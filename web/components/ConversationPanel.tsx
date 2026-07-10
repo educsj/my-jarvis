@@ -10,6 +10,7 @@ interface Msg {
   content: string;
   offline?: boolean;
   tools?: string[];
+  coder?: boolean;
 }
 
 /** Ondas sonoras enquanto o assistente "pensa" (eco do painel de voz do app). */
@@ -116,7 +117,7 @@ export function ConversationPanel() {
       });
       setMessages((m) => [
         ...m,
-        { role: 'assistant', content: res.reply, offline: !res.ok, tools: res.toolsUsed },
+        { role: 'assistant', content: res.reply, offline: !res.ok, tools: res.toolsUsed, coder: res.coder },
       ]);
       speak(res.audioUrl);
     } catch (err) {
@@ -141,7 +142,7 @@ export function ConversationPanel() {
       setMessages((m) => [
         ...m,
         { role: 'user', content: res.transcription || '(áudio)' },
-        { role: 'assistant', content: res.reply, offline: !res.ok, tools: res.toolsUsed },
+        { role: 'assistant', content: res.reply, offline: !res.ok, tools: res.toolsUsed, coder: res.coder },
       ]);
       speak(res.audioUrl);
     } catch (err) {
@@ -315,6 +316,11 @@ export function ConversationPanel() {
                 {m.tools && m.tools.length > 0 && (
                   <div className="mono" style={{ marginTop: 6, fontSize: '0.66rem', color: 'var(--color-ice)' }}>
                     ⚙ {m.tools.join(', ')}
+                  </div>
+                )}
+                {m.coder && (
+                  <div className="mono" style={{ marginTop: 6, fontSize: '0.66rem', color: 'var(--color-amber)' }}>
+                    ⌨ coder
                   </div>
                 )}
               </div>

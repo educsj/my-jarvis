@@ -28,6 +28,9 @@ terceiros, a menos que você ative explicitamente o Google Calendar.
   configurado para um Llama 3.1 8B *abliterated* que segue bem o *system prompt*.
   Ele sabe a data/hora atuais e admite com honestidade que não tem acesso à
   internet nem a dados em tempo real.
+- **⌨️ Modo programação (roteamento automático)** — perguntas de código são
+  roteadas automaticamente para um modelo especializado (`qwen2.5-coder`),
+  enquanto o resto mantém o modelo de personalidade sem censura.
 - **📅 Google Calendar (function calling)** — "agende almoço sábado ao meio-dia"
   realmente cria o evento, com tratamento de data confiável (dias da semana,
   "dia N", meses por nome).

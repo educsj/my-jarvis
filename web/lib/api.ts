@@ -63,6 +63,8 @@ export interface ChatReply {
   ok: boolean;
   personality: { humorLevel: number; empathyLevel: number };
   toolsUsed: string[];
+  /** true quando a resposta veio do modelo especializado em programação. */
+  coder: boolean;
   /** URL do áudio TTS da resposta (Piper), ou null se indisponível. */
   audioUrl: string | null;
 }
