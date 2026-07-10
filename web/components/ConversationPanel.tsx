@@ -47,6 +47,14 @@ export function ConversationPanel() {
     });
   }
 
+  // Limpa a conversa (contexto): apaga o histórico no backend e o log local.
+  async function clearConversation() {
+    if (thinking) return;
+    audioRef.current?.pause();
+    await api.clearChatHistory().catch(() => {});
+    setMessages([]);
+  }
+
   // Toca a voz (Piper) da resposta, se houver e não estiver mudo.
   function speak(url: string | null) {
     if (!url || mutedRef.current) return;
@@ -160,6 +168,17 @@ export function ConversationPanel() {
           <div className="panel-title">Falar com o Jarvis</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            type="button"
+            onClick={clearConversation}
+            disabled={thinking || messages.length === 0}
+            aria-label="Nova conversa"
+            title="Limpar conversa e resetar o contexto"
+            className="btn"
+            style={{ padding: '0.35rem 0.55rem', fontSize: '0.9rem' }}
+          >
+            🧹
+          </button>
           <button
             type="button"
             onClick={toggleMute}

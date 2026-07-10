@@ -106,6 +106,8 @@ export const api = {
   chat: (message: string) =>
     request<ChatReply>('/chat', { method: 'POST', body: JSON.stringify({ message }) }),
 
+  clearChatHistory: () => request<{ cleared: boolean }>('/chat/history', { method: 'DELETE' }),
+
   // Envia o áudio gravado para a pipeline de voz (STT → LLM → TTS).
   // Sem header Content-Type: o browser define o boundary do multipart.
   chatVoice: async (blob: Blob): Promise<VoiceReply> => {

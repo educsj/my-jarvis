@@ -1,6 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import path from 'node:path';
 import { z } from 'zod';
+import { prisma } from '../lib/prisma.js';
+import { getDefaultUserId } from '../lib/ensureUser.js';
 import { handleUserMessage } from '../services/chat.js';
 import { isOllamaAvailable } from '../services/ollama.js';
 import { transcribeAudio, isSttConfigured } from '../services/stt.js';
@@ -23,6 +25,13 @@ export async function chatRoutes(app: FastifyInstance) {
       sttReal: isSttConfigured(),
       ttsReal: isTtsConfigured(),
     };
+  });
+
+  // DELETE /chat/history — limpa o histórico de conversa (reseta o contexto)
+  app.delete('/chat/history', async () => {
+    const userId = await getDefaultUserId();
+    await prisma.chatHistory.deleteMany({ where: { userId } });
+    return { cleared: true };
   });
 
   // POST /chat — conversa por texto (útil para testar o cérebro + personalidade)
