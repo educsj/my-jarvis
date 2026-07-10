@@ -61,8 +61,8 @@ export async function chat(
 ): Promise<OllamaChatResult> {
   const model = options.model ?? env.OLLAMA_MODEL;
 
-  try {
-    const res = await fetch(`${env.OLLAMA_BASE_URL}/api/chat`, {
+  const post = (tools?: unknown[]) =>
+    fetch(`${env.OLLAMA_BASE_URL}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -70,16 +70,29 @@ export async function chat(
         messages,
         stream: false,
         options: { temperature: options.temperature ?? 0.7 },
-        ...(options.tools ? { tools: options.tools } : {}),
+        ...(tools ? { tools } : {}),
       }),
       signal: AbortSignal.timeout(120_000),
     });
 
+  try {
+    let res = await post(options.tools);
+
+    // Alguns modelos (ex.: dolphin3) não têm template de tools no Ollama e
+    // respondem "does not support tools". Nesse caso, refazemos a chamada sem
+    // ferramentas: o chat continua funcionando, apenas sem function calling.
+    if (!res.ok && options.tools) {
+      const text = await res.text().catch(() => '');
+      if (text.includes('does not support tools')) {
+        res = await post(undefined);
+      } else {
+        throw new OllamaUnavailableError(`Ollama respondeu ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+
     if (!res.ok) {
       const text = await res.text().catch(() => '');
-      throw new OllamaUnavailableError(
-        `Ollama respondeu ${res.status}: ${text.slice(0, 200)}`
-      );
+      throw new OllamaUnavailableError(`Ollama respondeu ${res.status}: ${text.slice(0, 200)}`);
     }
 
     const data = (await res.json()) as {

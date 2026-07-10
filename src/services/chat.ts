@@ -76,13 +76,16 @@ export async function handleUserMessage(userText: string): Promise<AssistantRepl
     result = await ollamaChat(messages, { tools, model });
   }
 
-  // Persiste a interação (mesmo em fallback, para manter o rastro da conversa).
-  await prisma.chatHistory.create({
-    data: { userId: user.id, role: 'user', content: userText },
-  });
-  await prisma.chatHistory.create({
-    data: { userId: user.id, role: 'assistant', content: result.content },
-  });
+  // Só persiste a interação quando o cérebro respondeu de verdade — evita poluir
+  // o contexto com mensagens de fallback "[Cérebro offline]" que o LLM depois imita.
+  if (result.ok) {
+    await prisma.chatHistory.create({
+      data: { userId: user.id, role: 'user', content: userText },
+    });
+    await prisma.chatHistory.create({
+      data: { userId: user.id, role: 'assistant', content: result.content },
+    });
+  }
 
   return {
     reply: result.content,
