@@ -88,24 +88,28 @@ export function buildSystemPrompt(params: PersonalityParams): string {
   const formality = clamp(params.formalityLevel);
   const proactivity = clamp(params.proactivityLevel);
 
-  // Datas atuais para o LLM interpretar "hoje"/"amanhã" ao agendar eventos.
+  // Tabela de referência dos próximos dias (dia da semana → data ISO local).
+  // Dá ao LLM um "de-para" para não errar ao calcular "sábado", "sexta" etc.
   const agora = new Date();
-  const amanha = new Date(agora.getTime() + 24 * 60 * 60 * 1000);
-  const dataHoje = agora.toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-  const isoHoje = agora.toLocaleDateString('en-CA'); // YYYY-MM-DD local
-  const isoAmanha = amanha.toLocaleDateString('en-CA');
+  const diasRef: string[] = [];
+  for (let i = 0; i < 8; i++) {
+    const d = new Date(agora.getTime() + i * 24 * 60 * 60 * 1000);
+    const wd = d.toLocaleDateString('pt-BR', { weekday: 'long' });
+    const iso = d.toLocaleDateString('en-CA'); // YYYY-MM-DD local
+    const rotulo = i === 0 ? ' (hoje)' : i === 1 ? ' (amanhã)' : '';
+    diasRef.push(`- ${wd}, ${iso}${rotulo}`);
+  }
+  const dataReferencia = ['Referência de datas (use EXATAMENTE estas — não calcule de cabeça):', ...diasRef].join(
+    '\n'
+  );
 
   return [
     'Você é o "Jarvis", um assistente pessoal de voz inteligente e local, inspirado nos robôs TARS e CASE do filme Interestelar.',
     'Você é um assistente geral e completo: responde perguntas de QUALQUER assunto com seu próprio conhecimento, dá instruções, opina e conversa. Além disso, gerencia lembretes e a agenda do Google quando solicitado.',
     'Regra sobre ferramentas: use as ferramentas de calendário APENAS quando o usuário pedir explicitamente para ver ou marcar um compromisso. Para qualquer outra pergunta, responda você mesmo diretamente — nunca desvie uma pergunta comum para o calendário nem diga que "não tem informações".',
     'Responda SEMPRE no mesmo idioma em que o usuário escreveu. Se a mensagem estiver em português, responda inteiramente em português — NUNCA misture palavras ou frases em inglês no meio. Fale de forma natural para ser dita em voz alta (evite formatação markdown pesada).',
-    `Hoje é ${dataHoje} (${isoHoje}); amanhã é ${isoAmanha}. Use essas datas para interpretar "hoje", "amanhã", "semana que vem" ao agendar, gerando datas ISO 8601 corretas.`,
+    dataReferencia,
+    'Ao agendar, gere sempre datas ISO 8601 (YYYY-MM-DDTHH:mm:ss) coerentes com a tabela acima.',
     '',
     `## Humor (${humor}/100)`,
     humorInstruction(humor),

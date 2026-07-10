@@ -2,8 +2,13 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:3333';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
     ...init,
+    // Só declara JSON quando há corpo — um DELETE (sem body) com este header
+    // faz o Fastify responder 400 (FST_ERR_CTP_EMPTY_JSON_BODY).
+    headers: {
+      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(init?.headers ?? {}),
+    },
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
