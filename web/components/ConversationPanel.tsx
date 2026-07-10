@@ -82,7 +82,16 @@ export function ConversationPanel() {
       <div
         ref={logRef}
         className="scroll"
-        style={{ flex: 1, minHeight: 240, display: 'flex', flexDirection: 'column', gap: '0.85rem', paddingRight: 4 }}
+        style={{
+          flex: 1,
+          minHeight: 240,
+          // Limita a altura para o log rolar internamente em vez de esticar a página.
+          maxHeight: '52vh',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.85rem',
+          paddingRight: 4,
+        }}
       >
         {messages.length === 0 && !thinking && (
           <div
