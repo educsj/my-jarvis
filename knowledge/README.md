@@ -1,6 +1,6 @@
-# Base de Conhecimento do Jarvis / Jarvis Knowledge Base
+# Base de Conhecimento / Knowledge Base
 
-**PT-BR:** Coloque nesta pasta os documentos que você quer que o Jarvis consulte
+**PT-BR:** Coloque nesta pasta os documentos que você quer que o assistente consulte
 para responder (`.txt`, `.md`, `.pdf`, `.docx`, `.csv`, `.xlsx`). Você pode
 organizar em subpastas por assunto (ex.: `trabalho/`, `projetos/`, `pessoal/`).
 Depois, reindexe pelo painel (botão **Reindexar**) ou via `POST /knowledge/reindex`.
@@ -14,7 +14,7 @@ app mobile acessa o backend pelo túnel.
 
 ---
 
-**EN:** Drop the documents you want Jarvis to use as context here (`.txt`, `.md`,
+**EN:** Drop the documents you want the assistant to use as context here (`.txt`, `.md`,
 `.pdf`, `.docx`, `.csv`, `.xlsx`). You can organize them into subfolders by topic
 (e.g., `work/`, `projects/`, `personal/`). Then reindex from the dashboard
 (**Reindex** button) or via `POST /knowledge/reindex`.

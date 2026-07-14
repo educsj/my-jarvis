@@ -1,4 +1,12 @@
-# Plano Diretor: Assistente Pessoal Inteligente (Open-Source)
+# Plano Diretor (documento histórico)
+
+> 📌 Este é o **briefing original** do projeto, preservado como registro de onde
+> ele começou. Ele **não descreve o estado atual** — algumas escolhas mudaram
+> durante a construção (ficou Fastify, a UI mobile não usa NativeWind, e vieram
+> features que não estavam previstas aqui: RAG, modo coder, preview ao vivo,
+> nome do assistente configurável).
+>
+> Para o que o projeto **é hoje**, veja o [README](../README.pt-BR.md).
 
 ## 1. Visão Geral do Projeto
 Um assistente de voz pessoal, 100% hospedado localmente (com suporte a acesso remoto), focado em privacidade, gestão de tarefas e integração de calendário. Inspirado nos robôs de *Interestelar* (TARS/CASE), o assistente terá parâmetros ajustáveis de humor e empatia.
@@ -19,38 +27,7 @@ Um assistente de voz pessoal, 100% hospedado localmente (com suporte a acesso re
 
 ---
 
-## 4. Arquivo `.gitignore` Inicial
-Proteção de dados e credenciais (como o `credentials.json` do Google) desde o primeiro commit.
-
-```text
-# Dependências
-node_modules/
-.pnp
-.pnp.js
-
-# Variáveis de Ambiente e Dados Sensíveis
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-*.pem
-credentials.json
-client_secret.json
-token.json
-
-# Bancos de dados locais e Áudios temporários
-*.sqlite
-*.db
-*.db-journal
-/temp_audio/
-/uploads/
-
-# Build e Logs
-dist/
-build/
-.expo/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-```
+## 4. Proteção de Dados desde o Primeiro Commit
+Credenciais e dados pessoais (`.env`, `credentials.json`, `token.json`, o banco
+SQLite, áudios temporários e os documentos da base de conhecimento) ficam fora do
+versionamento desde o início — ver o [`.gitignore`](../.gitignore) atual.

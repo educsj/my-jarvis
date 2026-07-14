@@ -1,4 +1,4 @@
-# 🤖 Meu Jarvis — Local Voice AI Assistant
+# 🤖 Meu Assistente — Local Voice AI Assistant
 
 **English** · [Português 🇧🇷](./README.pt-BR.md)
 
@@ -14,6 +14,14 @@ third-party cloud unless you explicitly enable Google Calendar.
 
 > ⚠️ Personal/portfolio project. No credentials or personal data are committed —
 > see [Privacy & Security](#-privacy--security).
+
+![The web dashboard: the six personality sliders (Humor, Empathy, Caution, Objectivity, Formality, Proactivity) next to the chat channel, agenda, knowledge base and reminders](./docs/dashboard.png)
+
+*The personality matrix, expanded — every slider rewrites the LLM's system prompt on the next message.*
+
+![The full panel with the matrix collapsed: agenda, knowledge base, chat channel and reminders side by side](./docs/dashboard-overview.png)
+
+*Matrix collapsed: the whole cockpit at a glance.*
 
 ## ✨ Features
 
@@ -41,9 +49,12 @@ third-party cloud unless you explicitly enable Google Calendar.
   files by drag-and-drop.
 - **📱 Android app** — React Native (Expo) with a fluid push-to-talk screen;
   build an `.apk` via EAS.
-- **⚙️ Settings panel** — one discreet drawer to switch the UI language (PT/EN),
-  pick a theme (extensible), choose the assistant's voice (Piper voices listed
-  per language), and browse the audit log.
+- **🏷️ Name it yourself** — the assistant's name is stored in the DB and flows
+  everywhere: the dashboard, the mobile app, and the model's own system prompt,
+  so it introduces itself by the name you gave it. Defaults to *Meu Assistente*.
+- **⚙️ Settings panel** — one discreet drawer to rename the assistant, switch the
+  UI language (PT/EN), pick a theme (extensible), choose the assistant's voice
+  (Piper voices listed per language), and browse the audit log.
 - **🔐 Privacy controls** — chat history is saved by default, but a one-click
   **private mode** keeps a conversation ephemeral; you can also **save a
   conversation into the knowledge base** (any subfolder) so it teaches the
@@ -127,6 +138,16 @@ ollama pull nomic-embed-text                              # embeddings (RAG)
 ```
 You can switch the chat model anytime via `PUT /settings { "llmModel": "..." }`.
 
+### Name your assistant
+The default name is **Meu Assistente**. Change it under **⚙ Settings → Assistant name** in
+the web dashboard, or straight from the API:
+```bash
+curl -X PUT http://localhost:3333/settings -H "Content-Type: application/json" \
+  -d '{"assistantName":"Ada"}'
+```
+The name is used everywhere: the dashboard, the mobile app, and the model's system prompt —
+so the assistant introduces itself with it.
+
 ### 3. Web dashboard
 ```bash
 cd web && npm install && npm run dev   # http://localhost:3000
@@ -181,10 +202,11 @@ Point the mobile app (`mobile/src/config.ts`) to the generated
 | Method | Route | Description |
 | --- | --- | --- |
 | GET | `/health`, `/chat/status` | Service & brain/voice status |
-| GET/PUT | `/settings` | Read / update the personality matrix |
+| GET/PUT | `/settings` | Read / update the personality matrix, the assistant's name and the LLM model |
 | GET/POST/PUT/DELETE | `/reminders` | Reminders CRUD |
 | POST | `/chat`, `/chat/voice` | Chat by text / by audio (`saveHistory: false` for private mode) |
 | DELETE | `/chat/history` | Reset conversation context |
+| GET/PUT | `/voices`, `/voices/select` | List installed Piper voices / pick one |
 | GET | `/logs` | Audit log of interactions/errors |
 | GET | `/auth/google`, `/auth/google/status` | Calendar OAuth2 |
 | GET/POST/DELETE | `/calendar/*` | List / create / delete events |

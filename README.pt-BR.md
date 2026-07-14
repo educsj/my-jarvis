@@ -1,4 +1,4 @@
-# 🤖 Meu Jarvis — Assistente de Voz com IA Local
+# 🤖 Meu Assistente — Assistente de Voz com IA Local
 
 [English](./README.md) · **Português 🇧🇷**
 
@@ -14,6 +14,14 @@ terceiros, a menos que você ative explicitamente o Google Calendar.
 
 > ⚠️ Projeto pessoal/portfólio. Nenhuma credencial ou dado pessoal é versionado —
 > veja [Privacidade & Segurança](#-privacidade--segurança).
+
+![O painel web: os seis sliders de personalidade (Humor, Empatia, Cautela, Objetividade, Formalidade, Proatividade) ao lado do canal de conversa, agenda, base de conhecimento e lembretes](./docs/dashboard.png)
+
+*A matriz de personalidade, expandida — cada slider reescreve o system prompt do LLM na próxima mensagem.*
+
+![O painel completo com a matriz recolhida: agenda, base de conhecimento, canal de conversa e lembretes lado a lado](./docs/dashboard-overview.png)
+
+*Matriz recolhida: o cockpit inteiro de relance.*
 
 ## ✨ Funcionalidades
 
@@ -45,9 +53,13 @@ terceiros, a menos que você ative explicitamente o Google Calendar.
   enviar documentos por arrastar-e-soltar.
 - **📱 App Android** — React Native (Expo) com tela fluida de push-to-talk;
   gera `.apk` via EAS.
-- **⚙️ Painel de configurações** — uma gaveta discreta para trocar o idioma da
-  interface (PT/EN), escolher um tema (extensível), selecionar a voz do
-  assistente (vozes do Piper listadas por idioma) e consultar o log de auditoria.
+- **🏷️ Você dá o nome** — o nome do assistente fica no banco e vale para todo o
+  sistema: painel, app mobile e o próprio system prompt do modelo, então ele se
+  apresenta com o nome que você escolheu. O padrão é *Meu Assistente*.
+- **⚙️ Painel de configurações** — uma gaveta discreta para renomear o assistente,
+  trocar o idioma da interface (PT/EN), escolher um tema (extensível), selecionar
+  a voz do assistente (vozes do Piper listadas por idioma) e consultar o log de
+  auditoria.
 - **🔐 Controles de privacidade** — o histórico é salvo por padrão, mas um
   **modo privado** (um clique) mantém a conversa efêmera; você também pode
   **salvar uma conversa na base de conhecimento** (em qualquer subpasta) para
@@ -131,6 +143,16 @@ ollama pull nomic-embed-text                              # embeddings (RAG)
 ```
 Você troca o modelo de chat a qualquer momento com `PUT /settings { "llmModel": "..." }`.
 
+### Dê um nome ao seu assistente
+O nome padrão é **Meu Assistente**. Para trocar, abra **⚙ Configurações** no painel web e
+edite *Nome do assistente* — ou chame a API direto:
+```bash
+curl -X PUT http://localhost:3333/settings -H "Content-Type: application/json" \
+  -d '{"assistantName":"Ada"}'
+```
+O nome vale para todo o sistema: aparece no painel, no app mobile e vai no prompt do
+modelo, então ele passa a se apresentar com ele.
+
 ### 3. Painel web
 ```bash
 cd web && npm install && npm run dev   # http://localhost:3000
@@ -185,10 +207,11 @@ gerada.
 | Método | Rota | Descrição |
 | --- | --- | --- |
 | GET | `/health`, `/chat/status` | Status do serviço e do cérebro/voz |
-| GET/PUT | `/settings` | Ler / atualizar a matriz de personalidade |
+| GET/PUT | `/settings` | Ler / atualizar a matriz de personalidade, o nome do assistente e o modelo |
 | GET/POST/PUT/DELETE | `/reminders` | CRUD de lembretes |
 | POST | `/chat`, `/chat/voice` | Conversa por texto / por áudio (`saveHistory: false` para modo privado) |
 | DELETE | `/chat/history` | Reseta o contexto da conversa |
+| GET/PUT | `/voices`, `/voices/select` | Listar vozes do Piper instaladas / escolher uma |
 | GET | `/logs` | Log de auditoria de interações/erros |
 | GET | `/auth/google`, `/auth/google/status` | OAuth2 do Calendar |
 | GET/POST/DELETE | `/calendar/*` | Listar / criar / remover eventos |
