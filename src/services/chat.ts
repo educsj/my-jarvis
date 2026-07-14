@@ -64,8 +64,9 @@ export async function handleUserMessage(
   // Perguntas de programação usam o modelo coder + prompt técnico (sem personalidade).
   const coding = isCodingRequest(userText);
   const systemPrompt = coding
-    ? coderSystemPrompt()
+    ? coderSystemPrompt(settings.assistantName)
     : buildSystemPrompt({
+        name: settings.assistantName,
         humorLevel: settings.humorLevel,
         empathyLevel: settings.empathyLevel,
         cautionLevel: settings.cautionLevel,

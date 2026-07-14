@@ -15,7 +15,7 @@ export async function ensureDefaultUser() {
 
   return prisma.user.create({
     data: {
-      name: 'Eduardo',
+      name: 'Usuário',
       settings: { create: {} },
     },
     include: { settings: true },

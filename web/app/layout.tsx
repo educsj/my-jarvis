@@ -15,7 +15,7 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'JARVIS // Painel de Controle',
+  title: 'Meu Assistente // Painel de Controle',
   description: 'Assistente pessoal local — matriz de personalidade, lembretes e agenda.',
 };
 

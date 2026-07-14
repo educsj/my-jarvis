@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { env } from '../config/env.js';
 import { reindex, knowledgeStatus } from '../services/knowledge/store.js';
 import { SUPPORTED } from '../services/knowledge/parse.js';
+import { ensureDefaultUser } from '../lib/ensureUser.js';
+import { assistantName } from '../config/assistant.js';
 
 const KNOWLEDGE_DIR = path.resolve(process.cwd(), env.KNOWLEDGE_DIR);
 
@@ -69,13 +71,16 @@ export async function knowledgeRoutes(app: FastifyInstance) {
     const dir = folder ? path.join(KNOWLEDGE_DIR, safeName(folder)) : KNOWLEDGE_DIR;
     await mkdir(dir, { recursive: true });
 
+    const user = await ensureDefaultUser();
+    const nome = assistantName(user.settings?.assistantName);
+
     const stamp = new Date().toISOString().slice(0, 10);
     const filename = `${safeName(title)} - ${stamp}.md`;
     const body = [
       `# ${title}`,
       `_Conversa salva em ${new Date().toLocaleString('pt-BR')}_`,
       '',
-      ...messages.map((m) => `**${m.role === 'user' ? 'Você' : 'Jarvis'}:** ${m.content}`),
+      ...messages.map((m) => `**${m.role === 'user' ? 'Você' : nome}:** ${m.content}`),
       '',
     ].join('\n\n');
 

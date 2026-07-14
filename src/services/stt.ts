@@ -33,7 +33,7 @@ export function isSttConfigured(): boolean {
 
 function stubResult(filename: string): TranscriptionResult {
   return {
-    text: `(transcrição simulada de "${filename}") Olá Jarvis, quais são meus lembretes de hoje?`,
+    text: `(transcrição simulada de "${filename}") Olá, quais são meus lembretes de hoje?`,
     real: false,
   };
 }

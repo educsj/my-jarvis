@@ -1,6 +1,10 @@
 import { API_URL } from './config';
 
+/** Nome do assistente quando o usuário ainda não escolheu um (espelha o backend). */
+export const DEFAULT_ASSISTANT_NAME = 'Meu Assistente';
+
 export interface Settings {
+  assistantName: string;
   humorLevel: number;
   empathyLevel: number;
   llmModel: string;

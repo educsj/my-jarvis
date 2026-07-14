@@ -1,7 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api, type Settings, type GoogleStatus, type PersonalityKey } from '@/lib/api';
+import {
+  api,
+  DEFAULT_ASSISTANT_NAME,
+  type Settings,
+  type GoogleStatus,
+  type PersonalityKey,
+} from '@/lib/api';
 import { StatusRail } from '@/components/StatusRail';
 import { PersonalityMatrix } from '@/components/PersonalityMatrix';
 import { ConversationPanel } from '@/components/ConversationPanel';
@@ -39,6 +45,12 @@ export default function Home() {
     setSettings(updated);
   }
 
+  async function renameAssistant(assistantName: string) {
+    setSettings(await api.updateSettings({ assistantName }));
+  }
+
+  const assistantName = settings?.assistantName?.trim() || DEFAULT_ASSISTANT_NAME;
+
   return (
     <I18nProvider>
       <main
@@ -75,12 +87,12 @@ export default function Home() {
           <KnowledgePanel />
         </div>
         <div className="col">
-          <ConversationPanel />
+          <ConversationPanel assistantName={assistantName} />
           <RemindersPanel />
         </div>
       </div>
 
-        <Footer />
+        <Footer assistantName={assistantName} />
 
       <style>{`
         .dash {
@@ -100,16 +112,21 @@ export default function Home() {
         }
       `}</style>
       </main>
-      <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsDrawer
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        settings={settings}
+        onRename={renameAssistant}
+      />
     </I18nProvider>
   );
 }
 
-function Footer() {
+function Footer({ assistantName }: { assistantName: string }) {
   const { t } = useI18n();
   return (
     <footer className="eyebrow" style={{ textAlign: 'center', paddingTop: '0.5rem' }}>
-      {t('footer')}
+      {t('footer', { name: assistantName })}
     </footer>
   );
 }

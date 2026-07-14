@@ -1,7 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api, type AuditEntry } from '@/lib/api';
+import {
+  api,
+  ASSISTANT_NAME_MAX,
+  DEFAULT_ASSISTANT_NAME,
+  type AuditEntry,
+  type Settings,
+} from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
 import { THEMES, applyTheme, savedTheme } from '@/lib/theme';
 
@@ -47,18 +53,50 @@ function Pill({
   );
 }
 
-export function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function SettingsDrawer({
+  open,
+  onClose,
+  settings,
+  onRename,
+}: {
+  open: boolean;
+  onClose: () => void;
+  settings: Settings | null;
+  onRename: (name: string) => Promise<void>;
+}) {
   const { lang, setLang, t } = useI18n();
   const [theme, setTheme] = useState('amber');
   const [voices, setVoices] = useState<Voice[]>([]);
   const [selectedVoice, setSelectedVoice] = useState('');
   const [logs, setLogs] = useState<AuditEntry[]>([]);
   const [onlyErrors, setOnlyErrors] = useState(false);
+  const [name, setName] = useState('');
+  const [nameStatus, setNameStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(savedTheme());
   }, []);
+
+  // Reidrata o campo sempre que o painel abre ou o nome salvo muda.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setName(settings?.assistantName ?? '');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setNameStatus('idle');
+  }, [settings?.assistantName, open]);
+
+  async function saveName() {
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === settings?.assistantName) return;
+    setNameStatus('saving');
+    try {
+      await onRename(trimmed);
+      setNameStatus('saved');
+    } catch {
+      setNameStatus('error');
+    }
+  }
 
   async function loadLogs(errors = onlyErrors) {
     setLogs((await api.getLogs({ limit: 60, errors }).catch(() => ({ entries: [] }))).entries);
@@ -128,6 +166,56 @@ export function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () =
             {t('settings.close')}
           </button>
         </div>
+
+        {/* Nome do assistente */}
+        <Section title={t('settings.name')}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                setNameStatus('idle');
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') saveName();
+              }}
+              maxLength={ASSISTANT_NAME_MAX}
+              placeholder={DEFAULT_ASSISTANT_NAME}
+              aria-label={t('settings.name')}
+              className="field"
+              style={{ flex: 1, minWidth: 0 }}
+            />
+            <button
+              type="button"
+              className="btn btn-amber"
+              onClick={saveName}
+              disabled={
+                nameStatus === 'saving' || !name.trim() || name.trim() === settings?.assistantName
+              }
+            >
+              {t('settings.name.save')}
+            </button>
+          </div>
+          <p
+            className="mono"
+            style={{
+              fontSize: '0.72rem',
+              marginTop: '0.5rem',
+              color:
+                nameStatus === 'error'
+                  ? 'var(--color-danger)'
+                  : nameStatus === 'saved'
+                    ? 'var(--color-amber)'
+                    : 'var(--color-muted)',
+            }}
+          >
+            {nameStatus === 'saved'
+              ? t('settings.name.saved')
+              : nameStatus === 'error'
+                ? t('settings.name.error')
+                : t('settings.name.hint')}
+          </p>
+        </Section>
 
         {/* Idioma */}
         <Section title={t('settings.language')}>

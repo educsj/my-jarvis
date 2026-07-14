@@ -28,8 +28,14 @@ export class ApiError extends Error {
 }
 
 // ---- Tipos (espelham o backend) ----
+
+/** Nome do assistente quando o usuário ainda não escolheu um (espelha o backend). */
+export const DEFAULT_ASSISTANT_NAME = 'Meu Assistente';
+export const ASSISTANT_NAME_MAX = 32;
+
 export interface Settings {
   id: string;
+  assistantName: string;
   humorLevel: number;
   empathyLevel: number;
   cautionLevel: number;
@@ -123,7 +129,9 @@ export const api = {
     ),
 
   getSettings: () => request<Settings>('/settings'),
-  updateSettings: (data: Partial<Record<PersonalityKey, number> & { llmModel: string }>) =>
+  updateSettings: (
+    data: Partial<Record<PersonalityKey, number> & { llmModel: string; assistantName: string }>
+  ) =>
     request<Settings>('/settings', { method: 'PUT', body: JSON.stringify(data) }),
 
   listReminders: () => request<Reminder[]>('/reminders'),

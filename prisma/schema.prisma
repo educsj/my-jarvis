@@ -62,9 +62,10 @@ model KnowledgeChunk {
   @@index([source])
 }
 
-// Matriz de Personalidade (estilo robôs de Interestelar - TARS/CASE)
+// Matriz de Personalidade + preferências do assistente
 model Settings {
   id               String   @id @default(uuid())
+  assistantName    String   @default("Meu Assistente") // nome exibido e usado nos prompts
   humorLevel       Int      @default(50) // 0-100
   empathyLevel     Int      @default(50) // 0-100
   cautionLevel     Int      @default(50) // 0-100: baixo = direto/sem avisos; alto = cauteloso

@@ -30,7 +30,7 @@ function Waveform() {
   );
 }
 
-export function ConversationPanel() {
+export function ConversationPanel({ assistantName }: { assistantName: string }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
@@ -219,7 +219,7 @@ export function ConversationPanel() {
       <div className="panel-head">
         <div>
           <div className="eyebrow">{t('conversation.eyebrow')}</div>
-          <div className="panel-title">{t('conversation.title')}</div>
+          <div className="panel-title">{t('conversation.title', { name: assistantName })}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button
@@ -310,7 +310,7 @@ export function ConversationPanel() {
               style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '82%' }}
             >
               <div className="eyebrow" style={{ marginBottom: 4, textAlign: m.role === 'user' ? 'right' : 'left' }}>
-                {m.role === 'user' ? t('chat.you') : 'Jarvis'}
+                {m.role === 'user' ? t('chat.you') : assistantName}
               </div>
               <div
                 style={{
@@ -357,7 +357,7 @@ export function ConversationPanel() {
         {thinking && (
           <div style={{ alignSelf: 'flex-start' }}>
             <div className="eyebrow" style={{ marginBottom: 4 }}>
-              Jarvis
+              {assistantName}
             </div>
             <div style={{ padding: '0.7rem 0.9rem', borderRadius: 12, border: '1px solid var(--line)', background: 'rgba(232,161,58,0.06)' }}>
               <Waveform />
@@ -372,7 +372,7 @@ export function ConversationPanel() {
           onClick={toggleRecording}
           disabled={thinking}
           aria-label={recording ? 'Parar gravação' : 'Gravar áudio'}
-          title={recording ? 'Parar e enviar' : 'Falar com o Jarvis'}
+          title={recording ? 'Parar e enviar' : t('conversation.title', { name: assistantName })}
           className="btn"
           style={{
             padding: '0.5rem 0.7rem',
@@ -397,7 +397,11 @@ export function ConversationPanel() {
         </button>
         <input
           className="field mono"
-          placeholder={recording ? '● gravando… toque no quadrado para enviar' : t('conversation.placeholder')}
+          placeholder={
+            recording
+              ? '● gravando… toque no quadrado para enviar'
+              : t('conversation.placeholder', { name: assistantName })
+          }
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && send()}

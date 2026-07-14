@@ -1,5 +1,5 @@
 /**
- * URL do backend do Jarvis.
+ * URL do backend do assistente.
  *
  * Em um dispositivo físico (ou Expo Go), `localhost` aponta para o PRÓPRIO
  * celular — não para o seu PC. Use um destes:

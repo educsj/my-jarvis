@@ -2,10 +2,12 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
 import { ensureDefaultUser } from '../lib/ensureUser.js';
+import { ASSISTANT_NAME_MAX } from '../config/assistant.js';
 
 const level = () => z.number().int().min(0).max(100).optional();
 
 const updateSettingsSchema = z.object({
+  assistantName: z.string().trim().min(1).max(ASSISTANT_NAME_MAX).optional(),
   humorLevel: level(),
   empathyLevel: level(),
   cautionLevel: level(),

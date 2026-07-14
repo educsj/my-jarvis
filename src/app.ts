@@ -43,7 +43,7 @@ export function buildApp() {
   });
 
   // Healthcheck
-  app.get('/health', async () => ({ status: 'ok', service: 'meu-jarvis-backend' }));
+  app.get('/health', async () => ({ status: 'ok', service: 'meu-assistente-backend' }));
 
   // Página inicial — índice amigável dos endpoints (backend é uma API)
   app.get('/', async (_request, reply) => {
@@ -90,7 +90,7 @@ function landingPageHtml(): string {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Meu Jarvis — API</title>
+  <title>Meu Assistente — API</title>
   <style>
     :root { color-scheme: dark light; }
     * { box-sizing: border-box; }
@@ -123,7 +123,7 @@ function landingPageHtml(): string {
 </head>
 <body>
   <div class="card">
-    <div class="top"><span class="dot"></span><h1>🤖 Meu Jarvis — API</h1></div>
+    <div class="top"><span class="dot"></span><h1>🤖 Meu Assistente — API</h1></div>
     <p class="sub">Backend no ar. Este servidor é uma API — use os endpoints abaixo. O painel visual virá na Fase 4 (Next.js).</p>
     <table><tbody>${rows}</tbody></table>
     <p class="foot">Dica: teste no navegador as rotas <code>GET</code> (ex.: <a href="/settings" style="color:#93c5fd">/settings</a>). As demais precisam de um cliente HTTP (curl / Postman).</p>

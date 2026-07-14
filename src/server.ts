@@ -10,7 +10,7 @@ async function start() {
     await ensureDefaultUser();
 
     await app.listen({ port: env.PORT, host: env.HOST });
-    app.log.info(`🤖 Meu Jarvis rodando em http://${env.HOST}:${env.PORT}`);
+    app.log.info(`🤖 Meu Assistente rodando em http://${env.HOST}:${env.PORT}`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);

@@ -1,11 +1,15 @@
 /**
- * Matriz de Personalidade — estilo robôs de Interestelar (TARS/CASE).
+ * Matriz de Personalidade.
  *
  * Converte os parâmetros numéricos do banco (0-100) em um System Prompt textual
  * que molda dinamicamente o tom da resposta do LLM.
  */
 
+import { assistantName } from '../config/assistant.js';
+
 export interface PersonalityParams {
+  /** Nome do assistente (definido pelo usuário nas Configurações). */
+  name?: string;
   humorLevel: number; // 0-100
   empathyLevel: number; // 0-100
   cautionLevel: number; // 0-100: baixo = direto/sem avisos; alto = cauteloso
@@ -26,7 +30,7 @@ function humorInstruction(level: number): string {
     level,
     'Seja direto, sério e objetivo. Evite piadas e sarcasmo.',
     'Use um humor leve e ocasional, sem exageros. Um comentário espirituoso de vez em quando é bem-vindo.',
-    'Seja bem-humorado e sarcástico como o TARS de Interestelar. Faça observações espirituosas e irônicas, mas sem perder a utilidade.'
+    'Seja bem-humorado e sarcástico, no estilo de um copiloto de bordo espirituoso. Faça observações irônicas e afiadas, mas sem perder a utilidade.'
   );
 }
 
@@ -81,6 +85,7 @@ const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
  * Monta o System Prompt final injetado no Ollama a cada requisição.
  */
 export function buildSystemPrompt(params: PersonalityParams): string {
+  const nome = assistantName(params.name);
   const humor = clamp(params.humorLevel);
   const empathy = clamp(params.empathyLevel);
   const caution = clamp(params.cautionLevel);
@@ -115,7 +120,7 @@ export function buildSystemPrompt(params: PersonalityParams): string {
   ].join('\n');
 
   return [
-    'Você é o "Jarvis", um assistente pessoal de voz inteligente e local, inspirado nos robôs TARS e CASE do filme Interestelar.',
+    `Você se chama "${nome}" e é um assistente pessoal de voz inteligente e local. Se perguntarem seu nome, responda "${nome}".`,
     'IDIOMA (regra prioritária): detecte o idioma da mensagem do usuário e responda SEMPRE inteiramente nesse mesmo idioma. Mensagem em português → responda em português; message in English → reply entirely in English. Nunca troque de idioma nem misture idiomas na mesma resposta.',
     'CAPACIDADES: você é um assistente de IA completo e capaz. Além de gerenciar a agenda, você AJUDA COM QUALQUER TAREFA que um modelo de linguagem consegue: escrever e revisar código, explicar conceitos, redigir e revisar textos, traduzir, dar conselhos, fazer brainstorming, cálculos e planejamento. NUNCA diga que "não tem habilidade" ou que "só serve para a agenda" — isso é falso; use seu conhecimento e ajude.',
     'LIMITAÇÕES: você é um modelo local, SEM acesso à internet e SEM dados em tempo real. Você não sabe resultados ou programação de jogos (ex.: Copa do Mundo), notícias recentes, cotações nem previsão do tempo. Se perguntarem algo que exige informação atual/online, diga com honestidade que não tem esse acesso — NUNCA finja que "acessou uma fonte".',

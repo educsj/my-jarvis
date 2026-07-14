@@ -16,8 +16,8 @@ const dict = {
     'personality.eyebrow': 'Matriz de Personalidade',
     'personality.title': 'Configuração do núcleo',
     'conversation.eyebrow': 'Canal de Conversa',
-    'conversation.title': 'Falar com o Jarvis',
-    'conversation.placeholder': '> mensagem para o jarvis',
+    'conversation.title': 'Falar com {name}',
+    'conversation.placeholder': '> mensagem para {name}',
     'conversation.send': 'Enviar',
     'conversation.idle': 'ocioso',
     'conversation.thinking': 'processando',
@@ -48,7 +48,7 @@ const dict = {
     'agenda.notconfig': 'não config.',
     'agenda.noevents': 'Nenhum compromisso hoje. Dia livre.',
     'agenda.syncing': 'Sincronizando…',
-    'footer': 'Meu Jarvis · Assistente pessoal local',
+    'footer': '{name} · Assistente pessoal local',
     'quip.humor90': '"Ajuste de humor em 90%. Vou avisar quando começar a exagerar."',
     'quip.direct': '"Modo direto. Sem rodeios, sem piadas."',
     'quip.empathy': '"Empatia alta. Estou aqui pra te ouvir de verdade."',
@@ -56,6 +56,11 @@ const dict = {
     'quip.default': '"Parâmetros aplicados. Pronto para operar."',
 
     'settings.title': 'Configurações',
+    'settings.name': 'Nome do assistente',
+    'settings.name.hint': 'Como ele se chama e como aparece no painel.',
+    'settings.name.save': 'Salvar',
+    'settings.name.saved': 'Nome atualizado.',
+    'settings.name.error': 'Não foi possível salvar o nome.',
     'settings.language': 'Idioma',
     'settings.appearance': 'Aparência',
     'settings.voice': 'Voz do assistente',
@@ -76,8 +81,8 @@ const dict = {
     'personality.eyebrow': 'Personality Matrix',
     'personality.title': 'Core configuration',
     'conversation.eyebrow': 'Conversation Channel',
-    'conversation.title': 'Talk to Jarvis',
-    'conversation.placeholder': '> message for jarvis',
+    'conversation.title': 'Talk to {name}',
+    'conversation.placeholder': '> message for {name}',
     'conversation.send': 'Send',
     'conversation.idle': 'idle',
     'conversation.thinking': 'thinking',
@@ -108,7 +113,7 @@ const dict = {
     'agenda.notconfig': 'not config.',
     'agenda.noevents': 'No events today. Free day.',
     'agenda.syncing': 'Syncing…',
-    'footer': 'Meu Jarvis · local personal assistant',
+    'footer': '{name} · local personal assistant',
     'quip.humor90': '"Humor set to 90%. I\'ll warn you when I start to overdo it."',
     'quip.direct': '"Direct mode. No fluff, no jokes."',
     'quip.empathy': '"High empathy. I\'m here to truly listen."',
@@ -116,6 +121,11 @@ const dict = {
     'quip.default': '"Parameters applied. Ready to operate."',
 
     'settings.title': 'Settings',
+    'settings.name': 'Assistant name',
+    'settings.name.hint': 'What it calls itself and how it shows up in the panel.',
+    'settings.name.save': 'Save',
+    'settings.name.saved': 'Name updated.',
+    'settings.name.error': 'Could not save the name.',
     'settings.language': 'Language',
     'settings.appearance': 'Appearance',
     'settings.voice': 'Assistant voice',
@@ -130,10 +140,16 @@ const dict = {
 
 export type TKey = keyof (typeof dict)['pt'];
 
+/** Variáveis interpoladas nas strings: `{name}` → vars.name. */
+export type TVars = Record<string, string | number>;
+
+const interpolate = (s: string, vars?: TVars): string =>
+  vars ? s.replace(/\{(\w+)\}/g, (m, k) => String(vars[k] ?? m)) : s;
+
 const I18nContext = createContext<{
   lang: Lang;
   setLang: (l: Lang) => void;
-  t: (k: TKey) => string;
+  t: (k: TKey, vars?: TVars) => string;
 }>({ lang: 'pt', setLang: () => {}, t: (k) => k });
 
 export function I18nProvider({ children }: { children: ReactNode }) {
@@ -150,7 +166,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('lang', l);
   };
 
-  const t = (k: TKey): string => dict[lang][k] ?? dict.pt[k] ?? k;
+  const t = (k: TKey, vars?: TVars): string => interpolate(dict[lang][k] ?? dict.pt[k] ?? k, vars);
 
   return <I18nContext.Provider value={{ lang, setLang, t }}>{children}</I18nContext.Provider>;
 }

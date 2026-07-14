@@ -1,6 +1,6 @@
 'use client';
 
-import type { Settings, GoogleStatus } from '@/lib/api';
+import { DEFAULT_ASSISTANT_NAME, type Settings, type GoogleStatus } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
 
 export function StatusRail({
@@ -17,6 +17,7 @@ export function StatusRail({
   onOpenSettings: () => void;
 }) {
   const { t } = useI18n();
+  const name = settings?.assistantName?.trim() || DEFAULT_ASSISTANT_NAME;
   return (
     <header
       className="reveal"
@@ -36,7 +37,8 @@ export function StatusRail({
             letterSpacing: '0.14em',
           }}
         >
-          TARS<span style={{ color: 'var(--color-amber)' }}>{'//'}</span>JARVIS
+          <span style={{ color: 'var(--color-amber)' }}>{'//'}</span>
+          {name.toUpperCase()}
         </span>
         <span className="eyebrow" style={{ letterSpacing: '0.2em' }}>
           {t('app.subtitle')}

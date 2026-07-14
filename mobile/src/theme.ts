@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-// Paleta "Cockpit Monolith" — coerente com o painel web (estética TARS/Interestelar).
+// Paleta "Cockpit Monolith" — coerente com o painel web (estética de cockpit).
 export const colors = {
   void: '#0a0d10',
   panel: '#12161b',

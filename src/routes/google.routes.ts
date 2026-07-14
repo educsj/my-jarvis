@@ -66,7 +66,7 @@ export async function googleRoutes(app: FastifyInstance) {
       return reply
         .type('text/html')
         .send(
-          '<h2>✅ Google Calendar conectado!</h2><p>Pode fechar esta aba e voltar ao Jarvis.</p>'
+          '<h2>✅ Google Calendar conectado!</h2><p>Pode fechar esta aba e voltar ao assistente.</p>'
         );
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro desconhecido';

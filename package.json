@@ -1,5 +1,5 @@
 {
-  "name": "meu-jarvis-backend",
+  "name": "meu-assistente-backend",
   "version": "0.1.0",
   "description": "Backend do Assistente Pessoal Inteligente (local, open-source)",
   "type": "module",

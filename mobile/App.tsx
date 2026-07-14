@@ -16,7 +16,7 @@ import {
   requestRecordingPermissionsAsync,
   setAudioModeAsync,
 } from 'expo-audio';
-import { api, type Settings } from './src/api';
+import { api, DEFAULT_ASSISTANT_NAME, type Settings } from './src/api';
 import { colors, mono } from './src/theme';
 import { Waveform } from './src/components/Waveform';
 
@@ -95,11 +95,13 @@ export default function App() {
       setOnline(true);
       setStatus('reply');
     } catch {
-      setReply(`Não consegui falar com o Jarvis. O backend está acessível em ${api.baseUrl}?`);
+      setReply(`Não consegui falar com o assistente. O backend está acessível em ${api.baseUrl}?`);
       setOnline(false);
       setStatus('reply');
     }
   }
+
+  const assistantName = settings?.assistantName?.trim() || DEFAULT_ASSISTANT_NAME;
 
   const label: Record<Status, string> = {
     idle: granted ? 'Segure para falar' : 'Permita o microfone',
@@ -120,7 +122,8 @@ export default function App() {
       {/* Header / telemetria */}
       <View style={styles.header}>
         <Text style={styles.wordmark}>
-          TARS<Text style={{ color: colors.amber }}>//</Text>JARVIS
+          <Text style={{ color: colors.amber }}>//</Text>
+          {assistantName.toUpperCase()}
         </Text>
         <View style={styles.chips}>
           <View style={styles.chip}>
@@ -176,19 +179,21 @@ export default function App() {
           </View>
         ) : (
           <Text style={styles.hint}>
-            Segure o botão, fale, e solte. O Jarvis responde com o tom definido pela matriz de
+            Segure o botão, fale, e solte. O assistente responde com o tom definido pela matriz de
             personalidade.
           </Text>
         )}
         {reply ? (
-          <View style={[styles.card, styles.cardJarvis]}>
-            <Text style={[styles.cardLabel, { color: colors.amber }]}>JARVIS</Text>
+          <View style={[styles.card, styles.cardAssistant]}>
+            <Text style={[styles.cardLabel, { color: colors.amber }]}>
+              {assistantName.toUpperCase()}
+            </Text>
             <Text style={styles.cardText}>{reply}</Text>
           </View>
         ) : null}
       </ScrollView>
 
-      <Text style={styles.footer}>Meu Jarvis · app local · Fase 5</Text>
+      <Text style={styles.footer}>{assistantName} · app local · Fase 5</Text>
     </View>
   );
 }
@@ -250,7 +255,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
   },
-  cardJarvis: { backgroundColor: 'rgba(232,161,58,0.07)' },
+  cardAssistant: { backgroundColor: 'rgba(232,161,58,0.07)' },
   cardLabel: { color: colors.ice, fontSize: 10, fontFamily: mono, letterSpacing: 2, marginBottom: 6 },
   cardText: { color: colors.text, fontSize: 15, lineHeight: 22 },
 

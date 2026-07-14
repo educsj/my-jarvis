@@ -6,7 +6,7 @@ import { useI18n, type TKey } from '@/lib/i18n';
 
 const SEGMENTS = 20;
 
-/** Barra segmentada arrastável — o instrumento-assinatura (estilo TARS). */
+/** Barra segmentada arrastável — o instrumento-assinatura do painel. */
 function SegmentSlider({
   label,
   code,
@@ -98,7 +98,7 @@ function SegmentSlider({
   );
 }
 
-/** Chave da tradução do comentário estilo TARS, derivado dos níveis atuais. */
+/** Chave da tradução do comentário do assistente, derivado dos níveis atuais. */
 function tarsQuipKey(humor: number, empathy: number): TKey {
   if (humor >= 90) return 'quip.humor90';
   if (humor <= 15 && empathy <= 15) return 'quip.direct';
@@ -166,7 +166,7 @@ export function PersonalityMatrix({
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="chip">
-            <span className="dot warn" /> TARS-MODE
+            <span className="dot warn" /> CORE-MODE
           </span>
           <button
             type="button"

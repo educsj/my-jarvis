@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet } from 'react-native';
 import { colors } from '../theme';
 
-/** Ondas sonoras animadas — ativas enquanto o Jarvis grava/processa/fala. */
+/** Ondas sonoras animadas — ativas enquanto o assistente grava/processa/fala. */
 export function Waveform({ active, color = colors.amber }: { active: boolean; color?: string }) {
   const bars = useRef([0, 1, 2, 3, 4, 5, 6].map(() => new Animated.Value(0.3))).current;
 
